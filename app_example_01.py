@@ -20,7 +20,7 @@ df = pd.read_csv("data/WHO_life_expectancy_data.csv")
 # APP BOILER PLATE
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.title = "UBC Canvas Discussion Board Demo"
+app.title = "Global Life Expectancy Trends - Dashboard"
 port = int(os.environ.get("PORT", 5000))
 server = app.server
 
@@ -45,35 +45,63 @@ fancy_container = {"border-radius": "5px",
 app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=[
     # HEADER
     html.Div(className="row", style={'backgroundColor': colors['ubc_blue'], "padding": 10}, children=[
-        html.H2('TITLE', style={'color': colors['white']})
+        html.H2('Global Life Expectancy Trends', style={'color': colors['white']})
     ]),
-    # MAIN BODY
+    # MAIN TOP
     html.Div(className="row", children=[
-        # SIDEBAR (left)
+        html.Div(className="three columns", style=fancy_container, children=[
+            html.P("Description")
+        ]),
+        html.Div(className="three columns", style=fancy_container, children=[
+                html.P("Box 1")
+        ]),
+        html.Div(className="three columns", style=fancy_container, children=[
+                html.P("Box 2")
+        ])
+    ]),
+    # MAIN MIDDLE TO BOTTOM
+    html.Div(className="row", children=[
+        # SIDEBAR FILTERS (left)
         html.Div(className="two columns", style={'padding': 20}, children=[
+            dcc.Markdown(style=fancy_container, children=
+                """
+                # FILTERS
+                Time series 1
+                """
+            ),
             html.Img(src="assets/ubc-logo-2.png", width="50")
         ]),
-        # MAIN BODY (right)
-        html.Div(className="ten columns", style={"backgroundColor": colors['white'], "padding": 20}, children=[
-            html.H4("Start a new discussion"),
-            html.Label("New topic title:"),
-            dcc.Input(id="topic_title", placeholder="Topic Title", type="text", size="75", value=""),
-            html.Br(),
-            html.Br(),
-            html.Label("New message:"),
-            dcc.Input(id="topic_message", placeholder="Message Details", type="text", size="75", style={'height': 250}),
-            html.Br(),
-            html.Br(),
-            html.Button('Submit', id='button'),
+        # TIME SERIES (middle)
+        html.Div(className="four columns", style={"backgroundColor": colors['white'], "padding": 20}, children=[
+            dcc.Markdown(style=fancy_container, children=
+                """
+                # TIME SERIES 1
+                Time series 1
+                """
+            ),
             html.Hr(),
             dcc.Markdown(style=fancy_container, children=
                 """
-                # This is  markdown
-                Testing the markdown
+                # TIME SERIES 2
+                Time series 2
                 """
             ),
-            html.H5("Existing discussions"),
-            html.Div(id="topic_prediction")
+        ]),
+        # HEAT MAP and DISTRIBUTIONS (right)
+        html.Div(className="four columns", style={"backgroundColor": colors['white'], "padding": 20}, children=[
+            dcc.Markdown(style=fancy_container, children=
+                """
+                # HEAT MAP
+                Heat map will go here
+                """
+            ),
+            html.Hr(),
+            dcc.Markdown(style=fancy_container, children=
+                """
+                # DISTRIBUTION
+                Dist goes here
+                """
+            )
         ])
     ])
 ])
@@ -90,6 +118,6 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False,
+    app.run_server(debug=True,
                    host="0.0.0.0",
                    port=port)

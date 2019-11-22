@@ -4,7 +4,7 @@
 
 This repo was created as a submission for class DSCI 532 as part of the Masters of Data Science program at the University of British Columbia.
 
-Team members (lab 1, group 101):University
+Team members (lab 1, group 101):
 
 - Jake Lee
 - Sam Edwardes

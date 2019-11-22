@@ -33,23 +33,6 @@ colors = {"white": "#ffffff",
           }
 
 # STYLES
-fancy_container = {"border-radius": "5px",
-                   "background-color": colors["off_white"],
-                   "margin": "10px",
-                   "padding": "15px",
-                   "position": "relative",
-                   "box-shadow": "2px 2px 2px lightgrey",
-                   "border-width": "0"
-                   }
-fancy_container_middle = {"border-radius": "5px",
-                    "background-color": colors["off_white"],
-                    "margin": "10px",
-                    "margin-left": "5px",
-                    "padding": "15px",
-                    "position": "relative",
-                    "box-shadow": "2px 2px 2px lightgrey",
-                    "border-width": "0"
-                    }
 column_style = {"border-radius": "0px",
                 #"background-color": colors["yellow"],
                 "margin": "0px",
@@ -71,28 +54,27 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
         html.Div(className="pretty_container four columns", style={"margin-left": "10px"}, children=[
             dcc.Markdown(children=
                 """
-                Dataset related to life expectancy, health factors for 193 countries has been collected from the same WHO 
-                data repository website and its corresponding economic data was collected from United Nations.
+                Dataset related to life expectancy, health factors for 193 countries has been collected from the same WHO
                 """
             )
         ]),
         # ROW 2 COLUMN 2
-        html.Div(className="two columns", style=fancy_container_middle, children=[
+        html.Div(className="pretty_container two columns", children=[
                 html.H6(str(df["Life expectancy "].mean().round(2))),
                 html.P("Mean Life Expectancy")
         ]),
         # ROW 2 COLUMN 3
-        html.Div(className="two columns", style=fancy_container_middle, children=[
+        html.Div(className="pretty_container two columns", children=[
                 html.H6(str(df["GDP"].mean().round(2))),
                 html.P("Mean GDP")
         ]),
         # ROW 2 COLUMN 4
-        html.Div(className="two columns", style=fancy_container_middle, children=[
+        html.Div(className="pretty_container two columns", children=[
                 html.H6(str(df["percentage expenditure"].mean().round(2))),
                 html.P("Mean Health Expenditure")
         ]),
         # ROW 2 COLUMN 4
-        html.Div(className="two columns", style=fancy_container_middle, children=[
+        html.Div(className="pretty_container two columns", children=[
                 html.H6(str(len(df["Country"].unique()))),
                 html.P("Number of Countries")
         ])
@@ -100,23 +82,33 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
     # ROW 3 - MAIN DASHBOARD
     html.Div(className="row", children=[
         # ROW 3 COLUMN 1 - SIDEBAR FILTERS
-        html.Div(className="two columns", style=fancy_container, children=[
-            dcc.Markdown(children=
-                """
-                ### FILTERS
-                Time series 1
-                """
-            )
+        html.Div(className="pretty_container two columns", style={"margin-left": "10px"}, children=[
+            html.H6("Filters"),
+            html.P("Country Status"),
+            dcc.RadioItems(id="radio_country_status", options=[
+                {'label': 'Developed', 'value': 'Developed'},
+                {'label': 'Un-developed', 'value': 'Un-developed'}
+            ]),
+            html.Br(),
+            html.P("Country"),
+            dcc.Dropdown(id="dropdown_country", multi=True, options=[
+                {'label': 'Canada', 'value': 'Canada'},
+                {'label': 'USA', 'value': 'USA'},
+                {'label': 'Mexico', 'value': 'Mexico'}
+            ]),
+            html.Br(),
+            html.P("Year"),
+            dcc.Slider(id="year_slider", min=2010, max=2015, step=1)
         ]),
         # ROW 3 COLUMN 2 - TIME SERIES PLOTS
         html.Div(className="five columns", style=column_style, children=[
-            dcc.Markdown(style=fancy_container_middle, children=[
+            dcc.Markdown(className="pretty_container", children=[
                 """
                 ### TIME SERIES 1
                 Time series 1
                 """
             ]),
-            dcc.Markdown(style=fancy_container_middle, children=[
+            dcc.Markdown(className="pretty_container", children=[
                 """
                 ### TIME SERIES 2
                 Time series 2
@@ -125,13 +117,13 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
         ]),
         # ROW 3 - COLUMN 3 - HEAT MAP and DISTRIBUTIONS
         html.Div(className="five columns", style=column_style, children=[
-            dcc.Markdown(style=fancy_container_middle, children=[
+            dcc.Markdown(className="pretty_container", children=[
                 """
                 ### HEAT MAP
                 Heat map will go here
                 """
             ]),
-            dcc.Markdown(style=fancy_container_middle, children=[
+            dcc.Markdown(className="pretty_container", children=[
                 """
                 ### DISTRIBUTION
                 Dist goes here

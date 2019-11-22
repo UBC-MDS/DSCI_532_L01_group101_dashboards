@@ -1,9 +1,12 @@
+import altair as alt
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+import janitor
+import numpy as np
 import os
 import pandas as pd
+from dash.dependencies import Input, Output
 
 
 ###########################################
@@ -11,6 +14,36 @@ import pandas as pd
 ###########################################
 
 df = pd.read_csv("data/WHO_life_expectancy_data.csv")
+df = janitor.clean_names(df)
+
+##############################################
+# PLOTS
+##############################################
+
+# PLOT 1 - life expectancy over time
+def df_over_time(df, x, y, colour):
+    selected_cols = [x] + [y] + [colour]
+    print(selected_cols)
+    df = (
+        df[selected_cols]
+            .groupby([x] + [colour])
+            .agg(np.mean)
+            .reset_index(drop=False)
+    )
+
+    return df
+
+# srcDoc = make_plot().to_hmtl()
+def make_plot_01():
+    fig = alt.Chart(
+        df_over_time(df, "year", "life_expectancy_", "status")
+        ).mark_line(
+        ).encode(
+            alt.X("year"),
+            alt.Y("life_expectancy_"),
+            alt.Color("status")
+        )
+    return fig
 
 
 ###########################################
@@ -60,22 +93,22 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
         ]),
         # ROW 2 COLUMN 2
         html.Div(className="pretty_container two columns", children=[
-                html.H6(str(df["Life expectancy "].mean().round(2))),
+                html.H6(str(df["life_expectancy_"].mean().round(2))),
                 html.P("Mean Life Expectancy")
         ]),
         # ROW 2 COLUMN 3
         html.Div(className="pretty_container two columns", children=[
-                html.H6(str(df["GDP"].mean().round(2))),
+                html.H6(str(df["gdp"].mean().round(2))),
                 html.P("Mean GDP")
         ]),
         # ROW 2 COLUMN 4
         html.Div(className="pretty_container two columns", children=[
-                html.H6(str(df["percentage expenditure"].mean().round(2))),
+                html.H6(str(df["percentage_expenditure"].mean().round(2))),
                 html.P("Mean Health Expenditure")
         ]),
         # ROW 2 COLUMN 4
         html.Div(className="pretty_container two columns", children=[
-                html.H6(str(len(df["Country"].unique()))),
+                html.H6(str(len(df["country"].unique()))),
                 html.P("Number of Countries")
         ])
     ]),
@@ -102,11 +135,21 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
         ]),
         # ROW 3 COLUMN 2 - TIME SERIES PLOTS
         html.Div(className="five columns", style=column_style, children=[
-            dcc.Markdown(className="pretty_container", children=[
-                """
-                ### TIME SERIES 1
-                Time series 1
-                """
+            html.Div(className="pretty_container", children=[
+                dcc.Markdown(
+                    """
+                    ### TIME SERIES 1
+                    Time series 1
+                    """
+                ),
+                html.Iframe(
+                    id="plot_01",
+                    sandbox='allow-scripts',
+                    height='450',
+                    width='625',
+                    style={'border-width': '0'},
+                    srcDoc=make_plot_01().to_html()
+                )
             ]),
             dcc.Markdown(className="pretty_container", children=[
                 """
@@ -136,6 +179,11 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 ###########################################
 # APP CALL BACKS
 ###########################################
+
+
+
+
+
 
 # To be updated
 

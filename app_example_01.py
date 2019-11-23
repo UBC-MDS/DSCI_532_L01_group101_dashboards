@@ -134,9 +134,9 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
         html.Div(className="pretty_container two columns", style={"margin-left": "10px"}, children=[
             html.H6("Filters"),
             html.P("Country Status"),
-            dcc.RadioItems(id="radio_country_status", options=[
+            dcc.RadioItems(id="radio_country_status", value="Developed", options=[
                 {'label': 'Developed', 'value': 'Developed'},
-                {'label': 'Un-developed', 'value': 'Un-developed'}
+                {'label': 'Developing', 'value': 'Developing'}
             ]),
             html.Br(),
             html.P("Country"),
@@ -162,9 +162,12 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                     sandbox='allow-scripts',
                     height='450',
                     width='625',
-                    style={'border-width': '0'},
-                    srcDoc=make_plot_01(df, "year", "life_expectancy_", "status").to_html()
-                )
+                    style={'border-width': '0'}
+                ),
+                dcc.RadioItems(id="plot_01_select_colour", value="status", options=[
+                    {'label': 'Status', 'value': 'status'},
+                    {'label': 'Country', 'value': 'country'}
+                ])
             ]),
             dcc.Markdown(className="pretty_container", children=[
                 """
@@ -195,6 +198,16 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 # APP CALL BACKS
 ###########################################
 
+#################
+# Plot 1
+#################
+@app.callback(
+    Output(component_id='plot_01', component_property='srcDoc'),
+    [Input(component_id='plot_01_select_colour', component_property='value')]
+)
+def update_plot_01(selected_colour):
+    fig = make_plot_01(df, x="year", y="life_expectancy_", colour=selected_colour)
+    return fig.to_html()
 
 
 

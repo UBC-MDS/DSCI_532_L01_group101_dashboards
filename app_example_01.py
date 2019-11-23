@@ -21,41 +21,41 @@ df = janitor.clean_names(df)
 ##############################################
 
 # PLOT 1 - life expectancy over time
-def df_over_time(df, x, y, colour):
-    selected_cols = [x] + [y] + [colour]
-    print(selected_cols)
-    df = (
-        df[selected_cols]
-            .groupby([x] + [colour])
-            .agg(np.mean)
-            .reset_index(drop=False)
-    )
-
-    return df
-
-# srcDoc = make_plot().to_hmtl()
 def make_plot_01(df, x, y, colour):
     
     # tidy data frame
-    selected_cols = [x] + [y] + [colour]
+    selected_cols = ["year"] + ["life_expectancy_"] + [colour]
     df = (
         df[selected_cols]
-            .groupby([x] + [colour])
+            .sort_values(by=[colour, "year"])
+            .groupby([colour, "year"])
             .agg(np.mean)
             .reset_index(drop=False)
     )
 
+    # calculate change in life expectancy
+    change_in_life_expectancy = (
+        df
+        .set_index(["year", colour])
+        .groupby(colour)
+        .pct_change()
+        .reset_index(drop=True)
+    )
+    df["change_in_life_expectancy_"] = change_in_life_expectancy.round(2)
+
     # create chart
+    
     fig = alt.Chart(
             df
         ).mark_line(
             point=True
         ).encode(
             alt.X(x + ":N", axis=alt.Axis(labelAngle=45)),
-            alt.Y(y),
+            alt.Y(y, axis=alt.Axis(tickMinStep=0.01)),
             alt.Color(colour),
             tooltip=[
-                alt.Tooltip(y, title=y)
+                alt.Tooltip("life_expectancy_", title="Life Expectancy"),
+                alt.Tooltip("change_in_life_expectancy_", title="Change in Life Expectancy")
             ]
         )
 
@@ -215,10 +215,11 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
     [
         Input(component_id='dropdown_country', component_property='value'),
         Input(component_id='radio_country_status', component_property='value'),
-        Input(component_id='plot_01_select_colour', component_property='value')
+        Input(component_id='plot_01_select_colour', component_property='value'),
+        Input(component_id='plot_01_select_y', component_property='value') # plot_01_select_y
     ]
 )
-def update_plot_01(country_list, country_status, selected_colour):
+def update_plot_01(country_list, country_status, selected_colour, selected_y):
     # filter data frame
     if country_list is None:
         df_filtered = df
@@ -227,21 +228,17 @@ def update_plot_01(country_list, country_status, selected_colour):
     if country_status == "All":
         df_filtered = df_filtered
     else:
-        df_filtered = df_filtered[df_filtered["status"] == country_status]
+        df_filtered = df_filtered[df_filtered["status"] == country_status]    
 
     # adjust colour
     fig = make_plot_01(
         df_filtered, 
         x="year", 
-        y="life_expectancy_", 
-        colour=selected_colour)
+        y=selected_y, 
+        colour=selected_colour
+    )
     return fig.to_html()
 
-
-
-
-
-# To be updated
 
 ###########################################
 # RUN APP

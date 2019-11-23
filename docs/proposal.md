@@ -10,7 +10,9 @@ To address this inequality we wish to better understand global trends in life ex
 
 ### Section 2: Description of the data
 
-The data was retrieved from Kaggle. The original sources of data are World Health Organization (WHO) and the United Nations. There are 22 variables and 2938 observations. We’ll be focusing on 7 variables and visualizing life expectancy (`Life expectancy`) with other possible predictor variables. The seven variables are: years ranging from 2000 to 2015 (`Year`), 193 countries (`Country`), the development status of country (`Status`), Gross Domestic Product per capita in USD (`GDP`), expenditure on health as a percentage of Gross Domestic Product per capita (`percentage expenditure`) and general government expenditure on health as a percentage of total government expenditure (`Total expenditure`).
+The data was retrieved from Kaggle. The original sources of data are World Health Organization (WHO) and the United Nations. There are 22 variables and 2938 observations. We will be visualizing life expectancy (`Life expectancy`) with other 6 possible predictor variables. The six predictor variables are: years ranging from 2000 to 2015 (`Year`), 193 countries (`Country`), the development status of country (`Status`), Gross Domestic Product per capita in USD (`GDP`), expenditure on health as a percentage of Gross Domestic Product per capita (`percentage expenditure`) and general government expenditure on health as a percentage of total government expenditure (`Total expenditure`). For the detailed description of the data, please see [Kaggle](https://www.kaggle.com/kumarajarshi/life-expectancy-who)
+
+Data source:[ https://www.kaggle.com/kumarajarshi/life-expectancy-who](https://www.kaggle.com/kumarajarshi/life-expectancy-who)
 
 *(Dataset approved by Firas)*
 

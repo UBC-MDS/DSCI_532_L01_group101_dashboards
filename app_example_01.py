@@ -51,7 +51,7 @@ def make_plot_01(df, x, y, colour):
         ).mark_line(
             point=True
         ).encode(
-            alt.X(x + ":N"),
+            alt.X(x + ":N", axis=alt.Axis(labelAngle=45)),
             alt.Y(y),
             alt.Color(colour),
             tooltip=[
@@ -134,17 +134,14 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
         html.Div(className="pretty_container two columns", style={"margin-left": "10px"}, children=[
             html.H6("Filters"),
             html.P("Country Status"),
-            dcc.RadioItems(id="radio_country_status", value="Developed", options=[
+            dcc.RadioItems(id="radio_country_status", value="All", options=[
+                {'label': "All", 'value': "All"},
                 {'label': 'Developed', 'value': 'Developed'},
                 {'label': 'Developing', 'value': 'Developing'}
             ]),
             html.Br(),
             html.P("Country"),
-            dcc.Dropdown(id="dropdown_country", multi=True, options=[
-                {'label': 'Canada', 'value': 'Canada'},
-                {'label': 'USA', 'value': 'USA'},
-                {'label': 'Mexico', 'value': 'Mexico'}
-            ]),
+            dcc.Dropdown(id="dropdown_country", multi=True, options=[{'label': i, 'value': i} for i in df["country"].unique()]),
             html.Br(),
             html.P("Year"),
             dcc.Slider(id="year_slider", min=2010, max=2015, step=1)
@@ -164,9 +161,21 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                     width='625',
                     style={'border-width': '0'}
                 ),
-                dcc.RadioItems(id="plot_01_select_colour", value="status", options=[
-                    {'label': 'Status', 'value': 'status'},
-                    {'label': 'Country', 'value': 'country'}
+                html.Div(className="row", children=[
+                    html.Div(className="six columns", children=[
+                        dcc.Markdown("**Select plot colour:**"),
+                        dcc.RadioItems(id="plot_01_select_colour", value="status", options=[
+                            {'label': 'Status', 'value': 'status'},
+                            {'label': 'Country', 'value': 'country'}
+                        ])
+                    ]),
+                    html.Div(className="six columns", children=[
+                        dcc.Markdown("**Select plot y-axis:**"),
+                        dcc.RadioItems(id="plot_01_select_y", value="life_expectancy_", options=[
+                            {'label': 'Life Expectancy', 'value': 'life_expectancy_'},
+                            {'label': 'Change in Life Expectancy', 'value': 'change_in_life_expectancy_'}
+                        ])
+                    ])
                 ])
             ]),
             dcc.Markdown(className="pretty_container", children=[
@@ -203,10 +212,29 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 #################
 @app.callback(
     Output(component_id='plot_01', component_property='srcDoc'),
-    [Input(component_id='plot_01_select_colour', component_property='value')]
+    [
+        Input(component_id='dropdown_country', component_property='value'),
+        Input(component_id='radio_country_status', component_property='value'),
+        Input(component_id='plot_01_select_colour', component_property='value')
+    ]
 )
-def update_plot_01(selected_colour):
-    fig = make_plot_01(df, x="year", y="life_expectancy_", colour=selected_colour)
+def update_plot_01(country_list, country_status, selected_colour):
+    # filter data frame
+    if country_list is None:
+        df_filtered = df
+    else:
+        df_filtered = df[df["country"].isin(country_list)]
+    if country_status == "All":
+        df_filtered = df_filtered
+    else:
+        df_filtered = df_filtered[df_filtered["status"] == country_status]
+
+    # adjust colour
+    fig = make_plot_01(
+        df_filtered, 
+        x="year", 
+        y="life_expectancy_", 
+        colour=selected_colour)
     return fig.to_html()
 
 

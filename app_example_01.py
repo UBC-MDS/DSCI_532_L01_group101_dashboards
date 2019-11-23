@@ -141,7 +141,7 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
             ]),
             html.Br(),
             html.P("Country"),
-            dcc.Dropdown(id="dropdown_country", multi=True, options=[{'label': i, 'value': i} for i in df["country"].unique()]),
+            dcc.Dropdown(id="dropdown_country", value=None, multi=True, options=[{'label': i, 'value': i} for i in df["country"].unique()]),
             html.Br(),
             html.P("Year"),
             dcc.Slider(id="year_slider", min=2010, max=2015, step=1)
@@ -228,7 +228,8 @@ def update_plot_01(country_list, country_status, selected_colour, selected_y):
     if country_status == "All":
         df_filtered = df_filtered
     else:
-        df_filtered = df_filtered[df_filtered["status"] == country_status]    
+        df_filtered = df_filtered[df_filtered["status"] == country_status] 
+    # TODO - when country dropdown is nothing, there is an error. need an if statement for this...
 
     # adjust colour
     fig = make_plot_01(

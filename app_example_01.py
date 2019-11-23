@@ -34,15 +34,31 @@ def df_over_time(df, x, y, colour):
     return df
 
 # srcDoc = make_plot().to_hmtl()
-def make_plot_01():
+def make_plot_01(df, x, y, colour):
+    
+    # tidy data frame
+    selected_cols = [x] + [y] + [colour]
+    df = (
+        df[selected_cols]
+            .groupby([x] + [colour])
+            .agg(np.mean)
+            .reset_index(drop=False)
+    )
+
+    # create chart
     fig = alt.Chart(
-        df_over_time(df, "year", "life_expectancy_", "status")
+            df
         ).mark_line(
+            point=True
         ).encode(
-            alt.X("year"),
-            alt.Y("life_expectancy_"),
-            alt.Color("status")
+            alt.X(x + ":N"),
+            alt.Y(y),
+            alt.Color(colour),
+            tooltip=[
+                alt.Tooltip(y, title=y)
+            ]
         )
+
     return fig
 
 
@@ -138,8 +154,7 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
             html.Div(className="pretty_container", children=[
                 dcc.Markdown(
                     """
-                    ### TIME SERIES 1
-                    Time series 1
+                    ###### Life expectancy over time
                     """
                 ),
                 html.Iframe(
@@ -148,7 +163,7 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                     height='450',
                     width='625',
                     style={'border-width': '0'},
-                    srcDoc=make_plot_01().to_html()
+                    srcDoc=make_plot_01(df, "year", "life_expectancy_", "status").to_html()
                 )
             ]),
             dcc.Markdown(className="pretty_container", children=[

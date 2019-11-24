@@ -24,11 +24,11 @@ df = janitor.clean_names(df)
 def make_plot_01(df, x, y, colour):
     
     # tidy data frame
-    selected_cols = ["year"] + ["life_expectancy_"] + [colour]
+    selected_cols = [x] + ["life_expectancy_"] + [colour]
     df = (
         df[selected_cols]
-            .sort_values(by=[colour, "year"])
-            .groupby([colour, "year"])
+            .sort_values(by=[colour, x])
+            .groupby([colour, x])
             .agg(np.mean)
             .reset_index(drop=False)
     )
@@ -36,7 +36,7 @@ def make_plot_01(df, x, y, colour):
     # calculate change in life expectancy
     change_in_life_expectancy = (
         df
-        .set_index(["year", colour])
+        .set_index([x, colour])
         .groupby(colour)
         .pct_change()
         .reset_index(drop=True)
@@ -141,7 +141,8 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
             ]),
             html.Br(),
             html.P("Country"),
-            dcc.Dropdown(id="dropdown_country", value=None, multi=True, options=[{'label': i, 'value': i} for i in df["country"].unique()]),
+            dcc.Dropdown(id="dropdown_country", multi=True, options=[{'label': i, 'value': i} for i in df["country"].unique()]),
+            html.P(id="dropdown_country_output"),
             html.Br(),
             html.P("Year"),
             dcc.Slider(id="year_slider", min=2010, max=2015, step=1)
@@ -207,6 +208,18 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 # APP CALL BACKS
 ###########################################
 
+@app.callback(
+    Output(component_id="dropdown_country_output", component_property="children"),
+    [Input(component_id="dropdown_country", component_property="value")]
+)
+def temp(x):
+    if x is None:
+        print(x)
+        return "None"
+    else:
+        print(x)
+        return x
+
 #################
 # Plot 1
 #################
@@ -221,7 +234,7 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 )
 def update_plot_01(country_list, country_status, selected_colour, selected_y):
     # filter data frame
-    if country_list is None:
+    if country_list is None or len(country_list) == 0:
         df_filtered = df
     else:
         df_filtered = df[df["country"].isin(country_list)]

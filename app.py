@@ -100,51 +100,138 @@ app.layout = html.Div([
             className="row flex-display",
             style={"margin-bottom": "25px"},
         ),
+    ########################### END
 
-    ### FILTERS On Side
-        html.Div(
-            [
-                html.Div(
+    ### Description & Summary Stats
+    html.Div(
+        [ 
+            html.Div(
                     [
-                        #### Status Radio Button - STARTS HERE####
-                        html.P("Filter by Country Status:", className="control_label"),
-                        dcc.RadioItems(
-                            id="country_dev_status_selector",
-                            options=[
-                                {"label": "Developed", "value": 0},
-                                {"label": "Developing", "value": 1}
+                        html.Div( #### H6 id should be referred to sth Else
+                            [   html.Div(
+                                    [html.H6("Description"), 
+                                    html.P("""This dashboard app is created to help decision-makers decide where and what to invest in 
+                                               to improve the life expectancy for all. 
+                                               Our app will visualize several factors across 193 countries to better understand the global macro trends.""")],
+                                    className="pretty_container four columns",
+                                ),
+
+                                html.Div(
+                                    [html.H6(id="LE_Text"), html.P("Life Expectancy")],
+                                    id="lifeExp",
+                                    className="pretty_container two columns",
+                                ),
+                                html.Div(
+                                    [html.H6(id="GDP_Text"), html.P("GDP")],
+                                    id="GrossDP",
+                                    className="pretty_container two columns",
+                                ),
+                                html.Div(
+                                    [html.H6(id="TE_Text"), html.P("Total Expenditure")],
+                                    id="TotalExp",
+                                    className="pretty_container two columns",
+                                ),
+                                html.Div(
+                                    [html.H6(id="NC_Text"), html.P("Number of Countries")],
+                                    id="NumCount",
+                                    className="pretty_container two columns",
+                                ),
                             ],
-                            value="Developed",
-                            #labelStyle={"display": "inline-block"},
-                            className="dcc_control"
+                            id="info-container",
+                            className="row container-display",
                         ),
-
-                        #### Country Selection Dropdown - STARTS HERE####
-                        html.P("Filter by Country Name:", className="control_label"),
-                        dcc.Dropdown(
-                            id="country_name_selector",
-                            options=[{'label':country, 'value':country} for country in countries],
-                            value=0,
-                            #labelStyle={"display": "inline-block"},
-                            className="dcc_control",
-                        ),
-
-                        #### Year Filter Range Bar - STARTS HERE####
-                        html.P("Filter by year:",className="control_label"),
-                        dcc.RangeSlider(
-                            id="year_slider",
-                            min= np.min(years),
-                            max= np.max(years),
-                            step= 1,
-                            marks={i:"{}".format(i) for i in range(np.min(years),np.max(years)+1)},
-                            value=[np.min(years), np.max(years)],
-                            className="dcc_control",
-                        )
                     ],
-                    className="pretty_container four columns",
-                    id="cross-filter-options",
-                ),
-            ])
+                    className="twelve columns",
+            ),
+        ]
+    ),
+    #### End
+    html.Br(),
+
+    ########## DASHBOARD
+    html.Div(
+        [ 
+            ############# FILTER part on the Side
+            html.Div(
+                [
+                    #### Status Radio Button - STARTS HERE####
+                    html.P("Filter by Country Status:", className="control_label"),
+                    dcc.RadioItems(
+                        id="country_dev_status_selector",
+                        options=[
+                            {"label": "Developed", "value": 0},
+                            {"label": "Developing", "value": 1}
+                        ],
+                        value="Developed",
+                        style={"display": "inline-block"},
+                        className="dcc_control"
+                    ),
+
+                    #### Country Selection Dropdown - STARTS HERE####
+                    html.P("Filter by Country Name:", className="control_label"),
+                    dcc.Dropdown(
+                        id="country_name_selector",
+                        options=[{'label':country, 'value':country} for country in countries],
+                        value=0,
+                        className="dcc_control",
+                    ),
+
+                    #### Year Filter Range Bar - STARTS HERE####
+                    html.P("Filter by year:",className="control_label"),
+                    dcc.RangeSlider(
+                        id="year_slider",
+                        min= np.min(years),
+                        max= np.max(years),
+                        step= 1,
+                        marks={i:"{}".format(i) for i in range(np.min(years),np.max(years)+1)},
+                        value=[np.min(years), np.max(years)],
+                        className="dcc_control",
+                    )
+                ],
+                id="cross-filter-options",
+                className="one-third column pretty_container"
+            ),
+
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            dcc.Graph()
+                        ]
+                    ),
+                    
+                    html.Br(),
+
+                    html.Div(
+                        [
+                            dcc.Graph()
+                        ]
+                    )
+                ],
+                className="one-third column pretty_container"
+            ),
+
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            dcc.Graph()
+                        ]
+                    ),
+
+                    html.Br(),
+
+                    html.Div(
+                        [
+                            dcc.Graph()
+                        ]
+                    )
+                ],
+                className="one-third column pretty_container"
+            ),
+        ],
+    )
+    ################## END
 ])
 
 

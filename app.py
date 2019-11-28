@@ -419,7 +419,7 @@ app.layout = html.Div([
         [ 
             html.Div(
                     [
-                        html.Div( #### H6 id should be referred to sth Else
+                        html.Div(
                             [   html.Div(
                                     [html.H6("Description"), 
                                     html.P("""This dashboard app is created to help decision-makers decide where and what to invest in 
@@ -429,19 +429,19 @@ app.layout = html.Div([
                                 ),
 
                                 html.Div(
-                                    [html.H6(str(data_df["life_expectancy"].mean().round(2))), 
+                                    [html.H6(str(round(data_df["life_expectancy"].mean(), 2))), 
                                     html.P("Mean Life Expectancy")],
                                     id="lifeExp",
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6("$" + '{:,.2f}'.format(data_df["gdp"].mean().round(2))), 
+                                    [html.H6("$" + '{:,.2f}'.format(round(data_df["gdp"].mean(),2))), 
                                     html.P("Mean GDP (USD)")],
                                     id="GrossDP",
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6("$" + '{:,.2f}'.format(data_df["gdp"].std().round(2))), 
+                                    [html.H6("$" + '{:,.2f}'.format(round(data_df["gdp"].std(),2))), 
                                     html.P("Standard Deviation GDP (USD)")],
                                     id="GrossDPsd",
                                     className="pretty_container two columns",

@@ -22,6 +22,126 @@ dev_status = list(data_df["status"].unique())
 countries = list(data_df["country"].unique())
 years = list(data_df["year"].unique())
 
+############################
+#     Data wrangling      ##
+############################
+
+# Select needed columns
+data_df = data_df.iloc[:, [1, 2, 3, 4, 8, 14, 17]]
+
+##add change in percentage columns and formating
+data_df['life_pct_change']=data_df.groupby('country').agg(
+    {'life_expectancy':'pct_change'})
+data_df['gdp_pct_change']=data_df.groupby('country').agg(
+    {'gdp':'pct_change'})
+
+def format_num(x, n=4):
+    if x is not None:
+        return round(x, n)
+    
+data_df.iloc[:,-2:] = data_df.iloc[:,-2:].apply(format_num)
+data_df.iloc[:,-3:-2] = data_df.iloc[:,-3:-2].apply(format_num, args=(1,))
+
+####################################
+#      Left two plots functions    #
+####################################
+
+def selection(data, y_axis='life_expectancy'):
+    '''
+    Retun selection layers for interactive plots
+    '''
+    nearest = alt.selection_single(encodings=['x'], 
+                                   on='mouseover',  
+                                   nearest=True,    
+                                   empty='none')
+    
+    line_chart = alt.Chart(data).mark_line().encode(
+        alt.X('year:O', axis=alt.Axis(labelAngle=0,
+                                      title='Year',
+                                      values=list(range(2000, 2017, 2)))),
+        alt.Color('country')
+    ).properties(width=400, height=300)
+    
+    base = line_chart.encode(
+            alt.Y(y_axis))
+    
+    selector = base.mark_point().encode(
+                opacity=alt.condition(nearest, alt.value(1), alt.value(0))
+                ).add_selection(nearest)
+    
+    rules = alt.Chart(data).mark_rule(color='gray').encode(
+                x='year:O').transform_filter(nearest)
+    
+    text = base.mark_text(align='left', dx=5, dy=-5).encode(
+                text=alt.condition(nearest, y_axis, alt.value(' '))
+                ).transform_filter(nearest)
+    
+    text_stroke = base.mark_text(align='left', dx=5, dy=-5, 
+                                 stroke='white', strokeWidth=3).encode(
+                text=y_axis
+            ).transform_filter(nearest)
+    
+    return selector, rules, text, text_stroke
+
+def make_line_plots(country=['Afghanistan'], Yaxis_checked='original'):
+    
+    #filter country input[list]
+    who_df_filter = data_df[data_df.country.isin(country)]
+    
+    
+    line_chart = alt.Chart(who_df_filter).mark_line().encode(
+        alt.X('year:O', axis=alt.Axis(labelAngle=0,
+                                      title='Year',
+                                     values=list(range(2000, 2017, 2)))),
+        alt.Color('country')
+    ).properties(width=400, height=300)
+    
+    ##checkbox for original number or change by percentage than last year
+    if Yaxis_checked=='original':
+        
+        #####life expectancy
+        life_chart = line_chart.encode(
+            alt.Y('life_expectancy', title='Life Expectancy')
+        ).properties(title='Life Expectancy Over Time')
+        
+        selector, rules, text, text_stroke = selection(who_df_filter, 'life_expectancy')
+        
+        life_chart_inter = alt.layer(life_chart, selector, rules, text_stroke, text)
+        
+        #####GDP
+        gdp_chart = line_chart.encode(
+            alt.Y('gdp', title='GDP in USD')
+            ).properties(title='GDP in USD Over Time')
+        
+        selector, rules, text, text_stroke = selection(who_df_filter, 'gdp')
+        
+        gdp_chart_inter = alt.layer(gdp_chart, selector, rules, text_stroke, text)
+            
+        return alt.vconcat(life_chart_inter, gdp_chart_inter).configure(background='white')
+    
+    else:
+        ########life expectancy in %
+        life_chart = line_chart.encode(
+        alt.Y('life_pct_change', title='Change in Percentage',
+              axis=alt.Axis(format='%'))
+    ).properties(title='Change in Life Expectancy Over Time')
+        
+        selector, rules, text, text_stroke = selection(who_df_filter, 'life_pct_change')
+        
+        life_chart_inter = alt.layer(life_chart, selector, rules, text_stroke, text)
+        
+        #######gdp in %
+        gdp_chart = line_chart.encode(
+        alt.Y('gdp_pct_change', title='Change in Percentage',
+              axis=alt.Axis(format='%'))
+        ).properties(title='Change in GDP Over Time')
+        
+        selector, rules, text, text_stroke = selection(who_df_filter, 'gdp_pct_change')
+        
+        gdp_chart_inter = alt.layer(gdp_chart, selector, rules, text_stroke, text)
+            
+        return alt.vconcat(life_chart_inter, gdp_chart_inter).configure(background='white')
+
 
 ################################
 ## Filter Options on the Left ##
@@ -39,6 +159,10 @@ country_name_options = [
 year_options = [
     {"label": year, "value": year} for year in years
 ]
+
+
+countries_dict={"Developing":data_df[data_df.status=='Developing'].country.unique(),
+               "Developed": data_df[data_df.status=='Developed'].country.unique()}
 
 
 # Title
@@ -159,8 +283,8 @@ app.layout = html.Div([
                     dcc.RadioItems(
                         id="country_dev_status_selector",
                         options=[
-                            {"label": "Developed", "value": 0},
-                            {"label": "Developing", "value": 1}
+                            {"label": "Developed", "value": "Developed"},
+                            {"label": "Developing", "value": "Developing"}
                         ],
                         value="Developed",
                         style={"display": "inline-block"},
@@ -171,46 +295,48 @@ app.layout = html.Div([
                     html.P("Filter by Country Name:", className="control_label"),
                     dcc.Dropdown(
                         id="country_name_selector",
-                        options=[{'label':country, 'value':country} for country in countries],
-                        value=0,
+                       # options=[{'label':country, 'value':country} for country in countries],
+                        value=[0],
+                        multi=True,
                         className="dcc_control",
                     ),
 
-                    #### Year Filter Range Bar - STARTS HERE####
-                    html.P("Filter by year:",className="control_label"),
-                    dcc.RangeSlider(
-                        id="year_slider",
-                        min= np.min(years),
-                        max= np.max(years),
-                        step= 1,
-                        marks={i:"{}".format(i) for i in range(np.min(years),np.max(years)+1)},
-                        value=[np.min(years), np.max(years)],
-                        className="dcc_control",
-                    )
+                    #### Radio button - STARTS HERE####
+                    html.P("Line plots Y-axis",className="control_label"),
+                    dcc.RadioItems(
+                        id="Yaxis_selector",
+                    options=[
+                        {'label': 'Original number', 'value': 'original'},
+                        {'label': 'By Percentage', 'value': 'N'}
+                    ],
+                    value='original'
+                    )  
                 ],
                 id="cross-filter-options",
                 className="one-third column pretty_container"
             ),
 
+
+            ################line plots####################
+            
             html.Div(
                 [
-                    html.Div(
-                        [
-                            dcc.Graph()
-                        ]
-                    ),
-                    
-                    html.Br(),
+                    html.Iframe(
+                        sandbox='allow-scripts',
+                        id='line-plot',
+                        height='900',
+                        width='900',
+                        style={'border-width': '0'},
 
-                    html.Div(
-                        [
-                            dcc.Graph()
-                        ]
+                        
+                        srcDoc = make_line_plots().to_html()
                     )
                 ],
                 className="one-third column pretty_container"
             ),
 
+
+            
             html.Div(
                 [
                     html.Div(
@@ -234,6 +360,27 @@ app.layout = html.Div([
     ################## END
 ])
 
+#####################
+##    callback     ##
+#####################
+
+#Chained dropdown for dev/countries
+@app.callback(
+    Output('country_name_selector', 'options'),
+    [Input("country_dev_status_selector", 'value')]
+    )
+def filter_dev_country(selected_dev):
+    return [{'label':i, 'value': i} for i in countries_dict[selected_dev]]
+
+
+#Line plots inputs callback
+@app.callback(
+    Output('line-plot', 'srcDoc'),
+    [Input('country_name_selector', 'value'),
+     Input("Yaxis_selector", 'value')]
+    )
+def update_line_plots(country, yaxis):
+    return make_line_plots(country, yaxis).to_html()
 
 
 ###########
@@ -241,4 +388,4 @@ app.layout = html.Div([
 ###########
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)

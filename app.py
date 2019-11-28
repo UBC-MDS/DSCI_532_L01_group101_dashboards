@@ -70,7 +70,7 @@ def make_line_plot_df(df):
     # df.iloc[:,-2:] = df.iloc[:,-2:].apply(format_num)
     # df.iloc[:,-3:-2] = df.iloc[:,-3:-2].apply(format_num, args=(1,))
 
-    return data_df
+    return df
 
 ################################
 # Line plots
@@ -133,7 +133,7 @@ def make_line_plots(data_df=data_df, country=['Afghanistan'], Yaxis_checked='ori
         #####life expectancy
         life_chart = line_chart.encode(
             alt.Y('life_expectancy:Q', title='Life Expectancy')
-        ).properties(title='Life Expectancy Over Time')
+        ).properties(title='Life Expectancy Over Time').interactive()
         
         selector, rules, text, text_stroke = selection(who_df_filter, 'life_expectancy')
         
@@ -142,20 +142,21 @@ def make_line_plots(data_df=data_df, country=['Afghanistan'], Yaxis_checked='ori
         #####GDP
         gdp_chart = line_chart.encode(
             alt.Y('gdp:Q', title='GDP in USD')
-        ).properties(title='GDP in USD Over Time')
+        ).properties(title='GDP in USD Over Time').interactive()
         
         selector, rules, text, text_stroke = selection(who_df_filter, 'gdp')
         
         gdp_chart_inter = alt.layer(gdp_chart, selector, rules, text_stroke, text)
             
-        return alt.vconcat(life_chart_inter, gdp_chart_inter).configure(background='white')
+        return alt.vconcat(life_chart_inter, gdp_chart_inter
+                           ).configure(background='white').configure_axis(grid=False)
     
     elif Yaxis_checked == "change_in_percent":
         ########life expectancy in %
         life_chart = line_chart.encode(
             alt.Y('life_pct_change:Q', title='Change in Percentage',
                    axis=alt.Axis(format='%'))
-        ).properties(title='Change in Life Expectancy Over Time')
+        ).properties(title='Change in Life Expectancy Over Time').interactive()
         
         selector, rules, text, text_stroke = selection(who_df_filter, 'life_pct_change')
         
@@ -165,13 +166,14 @@ def make_line_plots(data_df=data_df, country=['Afghanistan'], Yaxis_checked='ori
         gdp_chart = line_chart.encode(
         alt.Y('gdp_pct_change:Q', title='Change in Percentage',
               axis=alt.Axis(format='%'))
-        ).properties(title='Change in GDP Over Time')
+        ).properties(title='Change in GDP Over Time').interactive()
         
         selector, rules, text, text_stroke = selection(who_df_filter, 'gdp_pct_change')
         
         gdp_chart_inter = alt.layer(gdp_chart, selector, rules, text_stroke, text)
             
-        return alt.vconcat(life_chart_inter, gdp_chart_inter).configure(background='white')
+        return alt.vconcat(life_chart_inter, gdp_chart_inter
+                           ).configure(background='white').configure_axis(grid=False)
 
 
 ##############################################

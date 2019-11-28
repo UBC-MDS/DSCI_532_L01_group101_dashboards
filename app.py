@@ -5,6 +5,8 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import altair as alt
 import numpy as np
+import requests
+from vega_datasets import data
 
 app = dash.Dash(__name__, assets_folder='assets')
 server = app.server
@@ -16,6 +18,19 @@ server = app.server
 
 # Data Import
 data_df = pd.read_csv("./data/WHO_life_expectancy_data_clean.csv")
+def get_world_info():
+    """Create a dataframe of world info with country information
+    
+    Returns:
+        [pd.DataFrame] -- DataFrame containing a listing of countries and associated information
+    """    
+    world_info = requests.get("https://restcountries.eu/rest/v2/all")
+    world_info_df = pd.DataFrame(world_info.json())
+    world_info_df["name"] = world_info_df["name"].str.lower().str.strip()
+    world_info_df["numericCode"] = world_info_df["numericCode"].astype(float)
+    world_info_df["numericCode"] = world_info_df["numericCode"].fillna(0).astype(int)
+    return world_info_df
+world_info_df = get_world_info()
 
 # Define variables to use
 dev_status = list(data_df["status"].unique())
@@ -213,9 +228,21 @@ app.layout = html.Div([
 
             html.Div(
                 [
+                    # HEAT MAP
                     html.Div(
                         [
-                            dcc.Graph()
+                            html.Iframe(
+                                id="heat_map",
+                                sandbox='allow-scripts',
+                                height='450',
+                                width='625',
+                                style={'border-width': '0', 'background': 'white'}
+                            ),
+                            dcc.RadioItems(id="heat_map_colour_selector", value="life_expectancy", options=[
+                                {'label': 'Life Expectancy', 'value': 'life_expectancy'},
+                                {'label': 'GPD (USD)', 'value': 'gdp'},
+                                {'label': 'GDP Log (USD)', 'value': 'gdp_log'},
+                        ])
                         ]
                     ),
 
@@ -234,11 +261,119 @@ app.layout = html.Div([
     ################## END
 ])
 
+##############################################
+# Call backs
+##############################################
+@app.callback(
+    Output(component_id='heat_map', component_property='srcDoc'),
+    [
+        Input(component_id='heat_map_colour_selector', component_property='value'),
+        Input(component_id='year_slider', component_property='value')
+    ]
+)
+def make_plot_heat_map(colour, year_range=None):
+    """Creates an Altair choropleth map
+    
+    Arguments:
+        df {pd.DataFrame} -- Data frame containing the shaded values to plot and country information
+        colour {str} -- The column to plot colour scale by (should be either: "life_expectancy", "gdp", or "gdp_log")
+        year_range {list} -- List of length 2 containing year range (for example: `[2012, 2015]`) (default: {None}) 
+        world_info_df {pd.DataFrame} -- A data frame containing information for each country (default: {world_info_df})
+        out {str} -- Either 'df' or 'chart' to determine what object function returns (default: {'chart'})
+    
+    Returns:
+        altair.vegalite.v3.api.Chart -- Altair chart of world map with selected colour scale
+            or
+        pd.DataFrame -- Data frame used to make chart (useful for trouble shooting missing data)
+    """
 
+    # to be turned into arguments eventually...
+    df=data_df
+    out="chart"
+    
+    ##################################
+    # Clean and tidy data frame
+    ##################################
+    
+    # filter on year range
+    if year_range != None:
+        df = df[(df["year"] >= year_range[0]) & (df["year"] <= year_range[1])]
+
+    # aggregate and tidy data
+    df = (
+        df.loc[:, ["country", "status", "life_expectancy", "gdp"]].groupby(["country", "status"])
+          .agg("mean")
+          .reset_index()
+    )
+    df["gdp_log"] = np.log(df["gdp"])
+
+    # clean columns for lookup
+    df["country"] = df["country"].str.lower().str.strip()
+
+    # clean country names for lookup
+    df["country"] = df["country"].str.replace("czechia", "czech republic")
+    df["country"] = df["country"].str.replace("democratic people's republic of korea", "korea (democratic people's republic of)") # north korea
+    df["country"] = df["country"].str.replace("democratic republic of the congo", "congo (democratic republic of the)")
+    df["country"] = df["country"].str.replace("republic of korea", "korea (republic of)") # south korea
+    df["country"] = df["country"].str.replace("republic of moldova", "moldova (republic of)")
+    df["country"] = df["country"].str.replace("the former yugoslav republic of macedonia", "macedonia (the former yugoslav republic of)")
+    df["country"] = df["country"].str.replace("united republic of tanzania", "tanzania, united republic of")
+
+
+    # look up numeric code from world info
+    df = pd.merge(left=df,
+                       right=world_info_df[["name", "numericCode"]],
+                       left_on="country",
+                       right_on="name",
+                       how="left").drop("name", 1)
+
+    # numeric code must be string for lookup in altair
+    df["numericCode"] = df["numericCode"].astype(str)
+
+    # clean country names for prettier display
+    df["country"] = df["country"].str.title()
+    
+    
+    ##################################
+    # CREATE PLOT
+    ##################################
+    
+    if colour == "life_expectancy":
+        colour_title = "Life Expectancy"
+    elif colour == "gdp":
+        colour_title = "GDP (USD)"
+    elif colour == "gdp_log":
+        colour_title = "Log GDP (USD)"
+        
+    # country plotting data
+    countries = alt.topo_feature(data.world_110m.url, 'countries')
+
+    fig = alt.Chart(countries).mark_geoshape(
+        fill='#666666',
+        stroke='white'
+    ).encode(
+        alt.Color(colour + ":Q", title = colour_title),
+        tooltip=[
+            alt.Tooltip("country:N", title="Country"),
+            alt.Tooltip("life_expectancy:Q", title="Life Expectancy", format='.2f'),
+            alt.Tooltip("gdp:Q", title="GDP (USD)", format="$0,.2f"),
+            alt.Tooltip("gdp_log:Q", title="Log GDP (USD)", format="$0,.2f")
+        ]
+    ).transform_lookup(
+        lookup="id",
+        from_=alt.LookupData(df, "numericCode", ["life_expectancy", "country", "gdp", "gdp_log"])
+    ).configure_view(
+        strokeWidth=0,
+    ).project('naturalEarth1')
+    
+    if out == "chart":
+        return fig.to_html()
+    else:
+        return df
 
 ###########
 # Run app #
 ###########
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)

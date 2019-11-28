@@ -44,7 +44,7 @@ The dashboard will also include interactive elements. Tooltips will be used on a
 
 > TO UPDATE WITH CONTENT FROM ZOE
 
-![app-screenshot](assets/Screenshot_2019-11-28 World Life Expectancy Dashboard App.png)
+![app-screenshot](assets/app_screenshot_2019-11-28.png)
 
 
 

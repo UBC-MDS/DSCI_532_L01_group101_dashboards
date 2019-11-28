@@ -18,15 +18,17 @@ Team members (lab 1, group 101):
 
 ## Milestone 2:
 
-Under development
+- [Heroku deployment](https://dsci-532-group101-milestone2.herokuapp.com/)
+- [Reflection](docs/reflection.md)
+- [App functionality](#app-functionality)
 
 ## Milestone 3:
 
-Under development
+*Under development*
 
 ## Milestone 4:
 
-Under development
+*Under development*
 
 ## App Description and Sketch
 
@@ -37,6 +39,12 @@ One of the most interesting features of this dashboard is the ability to change 
 The dashboard will also include interactive elements. Tooltips will be used on all data points to allow the user to see precise values. The summary numbers at the top of the dashboard will serve as a “grounding point” so the user can easily compare individual observations to in view averages. Users are also able to filter the entire dashboard based on `country status` (developing or not developing), `country`, and a range of `years`.
 
 ![app-sketch](assets/dashboard_sketch_01.png)
+
+## App Functionality
+
+> TO UPDATE WITH CONTENT FROM ZOE
+
+![app-screenshot](assets/Screenshot_2019-11-28 World Life Expectancy Dashboard App.png)
 
 
 

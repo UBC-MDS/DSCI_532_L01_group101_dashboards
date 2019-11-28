@@ -5,6 +5,7 @@
 *.twbr
 se_app.py
 scrap.py
+tmp.txt
 
 ####################
 # R

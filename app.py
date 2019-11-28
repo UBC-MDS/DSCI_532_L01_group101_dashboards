@@ -63,9 +63,9 @@ def make_line_plot_df(df):
     df['gdp_pct_change']=df.groupby('country').agg(
         {'gdp':'pct_change'})
 
-    def format_num(x, n=4):
-        if x is not None:
-            return round(x, n)
+    # def format_num(x, n=4):
+    #     if x is not None:
+    #         return round(x, n)
         
     # df.iloc[:,-2:] = df.iloc[:,-2:].apply(format_num)
     # df.iloc[:,-3:-2] = df.iloc[:,-3:-2].apply(format_num, args=(1,))
@@ -507,21 +507,7 @@ app.layout = html.Div([
                             {'label': 'Change in Percentage', 'value': 'change_in_percent'}
                         ],
                         value='original'
-                    ),
-                    html.Br(),
-                    html.Br(),
-                    html.Br(),
-            #####################################################
-            ############## Histogram Goes Here ##################
-            #####################################################      
-                    html.Iframe(
-                        sandbox='allow-scripts',
-                        id='hist-plot',
-                        height='900',
-                        width='900',
-                        style={'border-width': '0'},
-                    )
-            ############ Histogram Ends ##########################       
+                    )   
                 ],
                 id="cross-filter-options",
                 className="one-third column pretty_container"
@@ -606,19 +592,6 @@ app.layout = html.Div([
 ##############################################
 # Call backs
 ##############################################
-
-###############################################################################
-###############################################################################
-#Histogram Plot inputs callback
-@app.callback(
-    Output('hist-plot', 'srcDoc'),
-    [Input('country_name_selector', 'value'),
-     Input("Yaxis_selector", 'value')]
-    )
-def update_hist_plot(country, yaxis):
-    return make_line_plots(country=country, Yaxis_checked=yaxis).to_html()
-###############################################################################
-###############################################################################
 
 
 #Line plots inputs callback

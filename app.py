@@ -62,13 +62,19 @@ def make_line_plot_df(df):
         {'life_expectancy':'pct_change'})
     df['gdp_pct_change']=df.groupby('country').agg(
         {'gdp':'pct_change'})
+    
+    def format_num(x, n=4):
+        """
+        Round number to n decimal place filtering None component
 
-    # def format_num(x, n=4):
-    #     if x is not None:
-    #         return round(x, n)
+        Arguments:
+        x (pd.DataFrame or pd.Series)
+        """
+        if x is not None:
+            return round(x, n)
         
-    # df.iloc[:,-2:] = df.iloc[:,-2:].apply(format_num)
-    # df.iloc[:,-3:-2] = df.iloc[:,-3:-2].apply(format_num, args=(1,))
+    df.loc[:, ['life_pct_change', 'gdp_pct_change']] = df.loc[:, ['life_pct_change', 'gdp_pct_change']].apply(format_num)
+    df.loc[:,'gdp'] = df.loc[:, 'gdp'].apply(format_num, args=(1,))
 
     return df
 
@@ -77,8 +83,16 @@ def make_line_plot_df(df):
 ################################
 
 def selection(data, y_axis='life_expectancy'):
+    
     '''
-    Retun selection layers for interactive plots
+    Create layers for interactive line selection
+
+    Arguments:
+    df {pd.DataFrame} -- life expectancy data frame
+    y_axis (str): column name for y axis
+    
+    Returns:
+    selection layers of conditional input and output
     '''
     nearest = alt.selection_single(encodings=['x'], 
                                    on='mouseover',  
@@ -91,21 +105,26 @@ def selection(data, y_axis='life_expectancy'):
                                       values=list(range(2000, 2017, 2)))),
         alt.Color('country')
     ).properties(width=400, height=300)
-    
+
+    #crease base plot with specified y-axis 
     base = line_chart.encode(
             alt.Y(y_axis))
     
+    #selector points
     selector = base.mark_point().encode(
                 opacity=alt.condition(nearest, alt.value(1), alt.value(0))
                 ).add_selection(nearest)
     
+    #transformed rule line based on selector
     rules = alt.Chart(data).mark_rule(color='gray').encode(
                 x='year:O').transform_filter(nearest)
-    
+
+    #transformed text based on selector
     text = base.mark_text(align='left', dx=5, dy=-5).encode(
                 text=alt.condition(nearest, y_axis, alt.value(' '))
                 ).transform_filter(nearest)
-    
+
+    #transformed white text as text background based on selector
     text_stroke = base.mark_text(align='left', dx=5, dy=-5, 
                                  stroke='white', strokeWidth=3).encode(
                 text=y_axis
@@ -114,6 +133,17 @@ def selection(data, y_axis='life_expectancy'):
     return selector, rules, text, text_stroke
 
 def make_line_plots(data_df=data_df, country=['Afghanistan'], Yaxis_checked='original'):
+
+    """
+    Arguments:
+        df {pd.DataFrame} -- Life expectancy data frame
+        country {list} -- The column to plot colour scale by (should be either: "life_expectancy", "gdp", or "gdp_log")
+        Yaxis_checked {str} -- only for str either 'original' or 'change_in_percent' 
+        
+    
+    Returns:
+        two altair line charts in a column
+    """
     
     data_df_line_plot = make_line_plot_df(data_df)
 

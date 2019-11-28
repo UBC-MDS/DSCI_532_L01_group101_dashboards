@@ -489,7 +489,7 @@ app.layout = html.Div([
                             className="row container-display",
                         ),
                     ],
-                    className="twelve columns",
+                    className="row1 twelve columns",
             ),
         ]
     ),
@@ -525,26 +525,14 @@ app.layout = html.Div([
                         className="dcc_control",
                     ),
 
-                    #### Year Range Slider - STARTS HERE####
-                    html.P("Select year range"),
-                    dcc.RangeSlider(id="year_slider", min=2000, max=2015, step=1, value=[2000, 2015], marks={i: str(i) for i in range(2000, 2016, 3)}),
+                    html.Br(),
                     html.Br(),
 
-                    #### Yaxis Change Radio button - STARTS HERE####
-                    html.P("Line plots Y-axis",className="control_label"),
-                    dcc.RadioItems(
-                        id="Yaxis_selector",
-                        options=[
-                            {'label': 'Original number', 'value': 'original'},
-                            {'label': 'Change in Percentage', 'value': 'change_in_percent'}
-                        ],
-                        value='original'
-                    )   
                 ],
                 id="cross-filter-options",
-                className="one-third column pretty_container"
+                className="column pretty_container",
+                style={"width":"25%","display":"inline","border-width":"0", "vertical-align":"top"},
             ),
-
 
             ################line plots####################
             
@@ -554,69 +542,86 @@ app.layout = html.Div([
                     html.Iframe(
                         sandbox='allow-scripts',
                         id='line-plot',
-                        height='900',
-                        width='900',
+                        height='800',
+                        width='100%',
                         style={'border-width': '0'},
                         # srcDoc = make_line_plots().to_html()
+                    ),
+                    #### Yaxis Change Radio button - STARTS HERE####
+                    html.P("Line plots Y-axis",className="control_label"),
+                    dcc.RadioItems(
+                        id="Yaxis_selector",
+                        options=[
+                            {'label': 'Original number', 'value': 'original'},
+                            {'label': 'Change in Percentage', 'value': 'change_in_percent'}
+                        ],
+                        value='original'
                     )
                 ],
-                className="one-third column pretty_container"
+                className="column2 pretty_container",
+                style={"width":"33%", "display":"inline-block","border":"0", "vertical-align":"top"},
             ),
-
-
             
             html.Div(
                 [
                     # HEAT MAP
-                    html.Div(
-                        [
-                            html.Iframe(
-                                id="heat_map",
-                                sandbox='allow-scripts',
-                                height='350',
-                                width='100%',
-                                style={'border-width': '0', 'background': 'white'}
-                            ),
-                            html.P("Select colour fill:"),
-                            dcc.RadioItems(id="heat_map_colour_selector", value="life_expectancy", options=[
-                                {'label': 'Life Expectancy', 'value': 'life_expectancy'},
+                    
+                    html.Iframe(
+                        id="heat_map",
+                        sandbox='allow-scripts',
+                        height='350',
+                        width='100%',
+                        style={'border-width': '0', 'background': 'white'}
+                    ),
+                    html.P("Select colour fill:"),
+                    dcc.RadioItems(id="heat_map_colour_selector", value="life_expectancy", options=[
+                        {'label': 'Life Expectancy', 'value': 'life_expectancy'},
+                        {'label': 'GPD (USD)', 'value': 'gdp'},
+                        {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
+                    ),
+                        
+                    html.Br(),
+
+                    html.Iframe(
+                        id="gdp_vs_life_scatter",
+                        sandbox='allow-scripts',
+                        height='400',
+                        width='100%',
+                        style={'border-width': '0', 'background': 'white'}
+                    ),
+                    html.Div([
+                        html.Div([
+                            html.P("Select point colour:"),
+                            dcc.RadioItems(id="gdp_vs_life_scatter_colour", value="status", options=[
+                                {'label': 'Status', 'value': 'status'},
+                                {'label': 'Country', 'value': 'country'}]
+                            )
+                        ]),
+                        html.Br(),
+                        html.Div([
+                            html.P("Select x-axis:"),
+                            dcc.RadioItems(id="gdp_vs_life_scatter_x", value="gdp", options=[
                                 {'label': 'GPD (USD)', 'value': 'gdp'},
                                 {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
                             )
-                        ]
-                    ),
-                    html.Br(),
-                    html.Div(
-                        [
-                            html.Iframe(
-                                id="gdp_vs_life_scatter",
-                                sandbox='allow-scripts',
-                                height='400',
-                                width='100%',
-                                style={'border-width': '0', 'background': 'white'}
-                            ),
-                            html.Div([
-                                html.Div([
-                                    html.P("Select point colour:"),
-                                    dcc.RadioItems(id="gdp_vs_life_scatter_colour", value="status", options=[
-                                        {'label': 'Status', 'value': 'status'},
-                                        {'label': 'Country', 'value': 'country'}]
-                                    )
-                                ], className="six columns"),
-                                html.Div([
-                                    html.P("Select x-axis:"),
-                                    dcc.RadioItems(id="gdp_vs_life_scatter_x", value="gdp", options=[
-                                        {'label': 'GPD (USD)', 'value': 'gdp'},
-                                        {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
-                                    )
-                                ], className="six columns")
-                            ], className="row"),
-                        ]
-                    )
+                        ]),
+                        html.Br(),
+                        html.Div([
+                            #### Year Range Slider - STARTS HERE####
+                            html.P("Select year range"),
+                            dcc.RangeSlider(id="year_slider", min=2000, max=2015, step=1, value=[2000, 2015], 
+                                            marks={i: str(i) for i in range(2000, 2016, 3)}),
+                    
+                        ]),
+                        html.Br(),
+                        html.Br()
+                    ]),        
                 ],
-                className="one-third column pretty_container"
+                className="column3 pretty_container",
+                style={"width":"33%","display":"inline-block", "border-width":"0","vertical-align":"top"}
             ),
         ],
+        className="row2 twelve columns"
     )
     ################## END
 ])

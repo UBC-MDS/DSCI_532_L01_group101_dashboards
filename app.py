@@ -270,10 +270,13 @@ def make_heat_map(df=data_df, colour="life_expectancy", year_range=None):
     
     if colour == "life_expectancy":
         colour_title = "Life Expectancy"
+        title = "World Heat Map - Mean Life Expectancy"
     elif colour == "gdp":
         colour_title = "GDP (USD)"
+        title = "World Heat Map - Mean GDP (USD)"
     elif colour == "gdp_log":
         colour_title = "Log GDP (USD)"
+        title = "World Heat Map - Mean Log GDP (USD)"
         
     # country plotting data
     countries = alt.topo_feature(data.world_110m.url, 'countries')
@@ -294,8 +297,11 @@ def make_heat_map(df=data_df, colour="life_expectancy", year_range=None):
         from_=alt.LookupData(df, "numericCode", ["life_expectancy", "country", "gdp", "gdp_log"])
     ).configure_view(
         strokeWidth=0,
-    ).project('naturalEarth1').properties(width=400, height=300)
-    
+    ).properties(
+        title=title,
+        width=400, 
+        height=300
+    ).project('naturalEarth1')
     
     return fig
 
@@ -335,12 +341,13 @@ def make_gdp_vs_life_scatter(df, x, colour, year_range=None):
     # CREATE PLOT
     ##################################
 
-    
     # create plot
     if x == "gdp":
         x_title = "GDP (USD)"
+        title = "Life Expectancy vs. Mean GDP (USD)"
     else:
         x_title = "GDP log (USD)"
+        title = "Life Expectancy vs. Mean Log GDP (USD)"
     if colour == "status":
         colour_title = "Status"
     else:
@@ -358,7 +365,11 @@ def make_gdp_vs_life_scatter(df, x, colour, year_range=None):
                 alt.Tooltip("gdp:Q", title="GDP (USD)", format="$0,.2f"),
                 alt.Tooltip("gdp_log:Q", title="GDP log (USD)", format="$0,.2f")
             ]
-    ).properties(width=400, height=300)
+    ).properties(
+        title=title,
+        width=400, 
+        height=300
+    )
     
     return fig
 
@@ -502,8 +513,17 @@ app.layout = html.Div([
             ############# FILTER part on the Side
             html.Div(
                 [
+                    #### Country Selection Dropdown - STARTS HERE####
+                    html.P("Filter by Country Name:", className="control_label"),
+                    dcc.Dropdown(
+                        id="country_name_selector",
+                       options=[{'label':country, 'value':country} for country in countries],
+                        value=["Mexico", "Turkey"],
+                        multi=True,
+                        className="dcc_control",
+                    ),
                     #### Status Radio Button - STARTS HERE####
-                    html.P("Filter by Country Status:", className="control_label"),
+                    html.P("Filter drop down menu by Country Status:", className="control_label"),
                     dcc.RadioItems(
                         id="country_dev_status_selector",
                         options=[
@@ -513,16 +533,6 @@ app.layout = html.Div([
                         value="Developed",
                         style={"display": "inline-block"},
                         className="dcc_control"
-                    ),
-
-                    #### Country Selection Dropdown - STARTS HERE####
-                    html.P("Filter by Country Name:", className="control_label"),
-                    dcc.Dropdown(
-                        id="country_name_selector",
-                       options=[{'label':country, 'value':country} for country in countries],
-                        value=["Mexico", "Turkey"],
-                        multi=True,
-                        className="dcc_control",
                     ),
 
                     html.Br(),
@@ -545,10 +555,9 @@ app.layout = html.Div([
                         height='800',
                         width='100%',
                         style={'border-width': '0'},
-                        # srcDoc = make_line_plots().to_html()
                     ),
                     #### Yaxis Change Radio button - STARTS HERE####
-                    html.P("Line plots Y-axis",className="control_label"),
+                    html.P("Select line plot y-axis:",className="control_label"),
                     dcc.RadioItems(
                         id="Yaxis_selector",
                         options=[
@@ -573,7 +582,7 @@ app.layout = html.Div([
                         width='100%',
                         style={'border-width': '0', 'background': 'white'}
                     ),
-                    html.P("Select colour fill:"),
+                    html.P("Select fill colour for heat map:"),
                     dcc.RadioItems(id="heat_map_colour_selector", value="life_expectancy", options=[
                         {'label': 'Life Expectancy', 'value': 'life_expectancy'},
                         {'label': 'GPD (USD)', 'value': 'gdp'},
@@ -590,32 +599,31 @@ app.layout = html.Div([
                         style={'border-width': '0', 'background': 'white'}
                     ),
                     html.Div([
-                        html.Div([
-                            html.P("Select point colour:"),
-                            dcc.RadioItems(id="gdp_vs_life_scatter_colour", value="status", options=[
-                                {'label': 'Status', 'value': 'status'},
-                                {'label': 'Country', 'value': 'country'}]
-                            )
-                        ]),
-                        html.Br(),
-                        html.Div([
-                            html.P("Select x-axis:"),
-                            dcc.RadioItems(id="gdp_vs_life_scatter_x", value="gdp", options=[
-                                {'label': 'GPD (USD)', 'value': 'gdp'},
-                                {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
-                            )
-                        ]),
+                                html.Div([
+                                    html.P("Select point colour:"),
+                                    dcc.RadioItems(id="gdp_vs_life_scatter_colour", value="status", options=[
+                                        {'label': 'Status', 'value': 'status'},
+                                        {'label': 'Country', 'value': 'country'}]
+                                    )
+                                ], className="six columns"),
+                                html.Div([
+                                    html.P("Select x-axis:"),
+                                    dcc.RadioItems(id="gdp_vs_life_scatter_x", value="gdp", options=[
+                                        {'label': 'GPD (USD)', 'value': 'gdp'},
+                                        {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
+                                    )
+                                ], className="six columns")
+                            ], className="row"),
                         html.Br(),
                         html.Div([
                             #### Year Range Slider - STARTS HERE####
-                            html.P("Select year range"),
+                            html.P("Select year range:"),
                             dcc.RangeSlider(id="year_slider", min=2000, max=2015, step=1, value=[2000, 2015], 
                                             marks={i: str(i) for i in range(2000, 2016, 3)}),
                     
                         ]),
                         html.Br(),
-                        html.Br()
-                    ]),        
+                        html.Br()      
                 ],
                 className="column3 pretty_container",
                 style={"width":"33%","display":"inline-block", "border-width":"0","vertical-align":"top"}
@@ -638,6 +646,15 @@ app.layout = html.Div([
      Input("Yaxis_selector", 'value')]
     )
 def update_line_plots(country, yaxis):
+    """Update line plot
+    
+    Arguments:
+        country {list} -- List of countries to filter on
+        yaxis {str} -- Determine which column should be on plot y axis
+    
+    Returns:
+        html -- Altair chart in html
+    """    
     return make_line_plots(country=country, Yaxis_checked=yaxis).to_html()
 
 # HEATMAP
@@ -671,6 +688,16 @@ def update_heat_map(selected_colour, year_range):
     ]
 )
 def update_gdp_vs_life_scatter(selected_x, selected_colour, year_range): 
+    """Update gdp vs. life expectancy scatter plot
+    
+    Arguments:
+        selected_x {str} -- Name of column for x-axis
+        selected_colour {str} -- Name of column to generate point colour
+        year_range {list} -- List of length two containing year range (e.g. [2011, 2013])
+    
+    Returns:
+        html -- Altair chart in html
+    """    
     return make_gdp_vs_life_scatter(df=data_df, 
                                     x=selected_x, 
                                     colour=selected_colour, 
@@ -683,7 +710,15 @@ def update_gdp_vs_life_scatter(selected_x, selected_colour, year_range):
     Output('country_name_selector', 'options'),
     [Input("country_dev_status_selector", 'value')]
     )
-def filter_dev_country(selected_dev):    
+def filter_dev_country(selected_dev):   
+    """Update country drop down filter
+    
+    Arguments:
+        selected_dev {str} -- Determine if dropdown should show developed or developing countries
+
+    Returns:
+        html -- Altair chart in html
+    """     
     return [{'label':i, 'value': i} for i in countries_dict[selected_dev]]
 
 

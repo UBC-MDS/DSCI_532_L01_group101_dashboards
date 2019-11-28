@@ -492,10 +492,13 @@ app.layout = html.Div([
                         multi=True,
                         className="dcc_control",
                     ),
+
+                    #### Year Range Slider - STARTS HERE####
                     html.P("Select year range"),
                     dcc.RangeSlider(id="year_slider", min=2000, max=2015, step=1, value=[2000, 2015], marks={i: str(i) for i in range(2000, 2016, 3)}),
                     html.Br(),
-                    #### Radio button - STARTS HERE####
+
+                    #### Yaxis Change Radio button - STARTS HERE####
                     html.P("Line plots Y-axis",className="control_label"),
                     dcc.RadioItems(
                         id="Yaxis_selector",
@@ -504,7 +507,21 @@ app.layout = html.Div([
                             {'label': 'Change in Percentage', 'value': 'change_in_percent'}
                         ],
                         value='original'
-                    )  
+                    ),
+                    html.Br(),
+                    html.Br(),
+                    html.Br(),
+            #####################################################
+            ############## Histogram Goes Here ##################
+            #####################################################      
+                    html.Iframe(
+                        sandbox='allow-scripts',
+                        id='hist-plot',
+                        height='900',
+                        width='900',
+                        style={'border-width': '0'},
+                    )
+            ############ Histogram Ends ##########################       
                 ],
                 id="cross-filter-options",
                 className="one-third column pretty_container"
@@ -589,6 +606,20 @@ app.layout = html.Div([
 ##############################################
 # Call backs
 ##############################################
+
+###############################################################################
+###############################################################################
+#Histogram Plot inputs callback
+@app.callback(
+    Output('hist-plot', 'srcDoc'),
+    [Input('country_name_selector', 'value'),
+     Input("Yaxis_selector", 'value')]
+    )
+def update_hist_plot(country, yaxis):
+    return make_line_plots(country=country, Yaxis_checked=yaxis).to_html()
+###############################################################################
+###############################################################################
+
 
 #Line plots inputs callback
 @app.callback(

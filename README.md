@@ -42,9 +42,14 @@ The dashboard will also include interactive elements. Tooltips will be used on a
 
 ## App Functionality
 
-> TO UPDATE WITH CONTENT FROM ZOE
+The top level of the plot contains a logo and dashboard title. The data is retrieved from [Kaggle](https://www.kaggle.com/kumarajarshi/life-expectancy-who). For the convenience of the user we have provided a button the user can click on to view the original data source.
+
+The next row of the dashboard provides a description of the data and high level summary statistics. These help the user understand how far each country is from the mean values. These values intentionally do not change with the filters so the user can always refer back to this baseline.
+
+The final row contains three columns:
+
+- The filters on the left enables the user to choose which countries they specifically wish to review
+- The life expectancy line plots allows the user to compare the life expectancy and GDP over time by country. Below the line plots the user can change the y-axis from absolve values to year over year percent change.
+- The right top graph is a heat map for these 193 countries. The user can dynamically change what the fill colour represents choosing between: life expectancy, GDP, or logged GDP. Below the heat map is the GDP by life expectancy scatter plot for all 193 countries. By using the radio buttons and slider under the plot the user can look for interesting patterns or relationships between GDP and life expectancy.
 
 ![app-screenshot](assets/app_screenshot_2019-11-28.png)
-
-
-

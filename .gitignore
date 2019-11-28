@@ -4,6 +4,7 @@
 *.twb
 *.twbr
 se_app.py
+se_app2.py
 scrap.py
 tmp.txt
 

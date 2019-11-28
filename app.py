@@ -8,16 +8,23 @@ import numpy as np
 import requests
 from vega_datasets import data
 
+################################
+# General app settings
+################################
+
 app = dash.Dash(__name__, assets_folder='assets')
+app.title = 'World Life Expectancy Dashboard App'
 server = app.server
 
 
 ################################
-##    Define variable names   ##
+# DATA
 ################################
 
-# Data Import
-data_df = pd.read_csv("./data/WHO_life_expectancy_data_clean.csv")
+# Load life expectancy data
+data_df = pd.read_csv("data/WHO_life_expectancy_data_clean.csv")
+
+# Load additional country information
 def get_world_info():
     """Create a dataframe of world info with country information
     
@@ -32,34 +39,42 @@ def get_world_info():
     return world_info_df
 world_info_df = get_world_info()
 
-# Define variables to use
-dev_status = list(data_df["status"].unique())
-countries = list(data_df["country"].unique())
-years = list(data_df["year"].unique())
 
-############################
-#     Data wrangling      ##
-############################
 
-# Select needed columns
-data_df = data_df.iloc[:, [1, 2, 3, 4, 8, 14, 17]]
-
-##add change in percentage columns and formating
-data_df['life_pct_change']=data_df.groupby('country').agg(
-    {'life_expectancy':'pct_change'})
-data_df['gdp_pct_change']=data_df.groupby('country').agg(
-    {'gdp':'pct_change'})
-
-def format_num(x, n=4):
-    if x is not None:
-        return round(x, n)
+def make_line_plot_df(df):
+    """Wrangle data for line plots
     
-data_df.iloc[:,-2:] = data_df.iloc[:,-2:].apply(format_num)
-data_df.iloc[:,-3:-2] = data_df.iloc[:,-3:-2].apply(format_num, args=(1,))
+    Arguments:
+        df {pd.DataFrame} -- Raw life expectancy data frame
+    
+    Returns:
+        pd.DataFrame -- In format wrangled for line plots
+    """    
+    
+    df
 
-####################################
-#      Left two plots functions    #
-####################################
+    # Select needed columns
+    df = df.loc[:, ["country", "year", "status", "life_expectancy", "gdp"]]
+    
+
+    ##add change in percentage columns and formating
+    df['life_pct_change']=df.groupby('country').agg(
+        {'life_expectancy':'pct_change'})
+    df['gdp_pct_change']=df.groupby('country').agg(
+        {'gdp':'pct_change'})
+
+    def format_num(x, n=4):
+        if x is not None:
+            return round(x, n)
+        
+    # df.iloc[:,-2:] = df.iloc[:,-2:].apply(format_num)
+    # df.iloc[:,-3:-2] = df.iloc[:,-3:-2].apply(format_num, args=(1,))
+
+    return data_df
+
+################################
+# Line plots
+################################
 
 def selection(data, y_axis='life_expectancy'):
     '''
@@ -98,10 +113,12 @@ def selection(data, y_axis='life_expectancy'):
     
     return selector, rules, text, text_stroke
 
-def make_line_plots(country=['Afghanistan'], Yaxis_checked='original'):
+def make_line_plots(data_df=data_df, country=['Afghanistan'], Yaxis_checked='original'):
     
+    data_df_line_plot = make_line_plot_df(data_df)
+
     #filter country input[list]
-    who_df_filter = data_df[data_df.country.isin(country)]
+    who_df_filter = data_df_line_plot[data_df_line_plot["country"].isin(list(country))]
     
     
     line_chart = alt.Chart(who_df_filter).mark_line().encode(
@@ -112,11 +129,10 @@ def make_line_plots(country=['Afghanistan'], Yaxis_checked='original'):
     ).properties(width=400, height=300)
     
     ##checkbox for original number or change by percentage than last year
-    if Yaxis_checked=='original':
-        
+    if Yaxis_checked == 'original':
         #####life expectancy
         life_chart = line_chart.encode(
-            alt.Y('life_expectancy', title='Life Expectancy')
+            alt.Y('life_expectancy:Q', title='Life Expectancy')
         ).properties(title='Life Expectancy Over Time')
         
         selector, rules, text, text_stroke = selection(who_df_filter, 'life_expectancy')
@@ -125,8 +141,8 @@ def make_line_plots(country=['Afghanistan'], Yaxis_checked='original'):
         
         #####GDP
         gdp_chart = line_chart.encode(
-            alt.Y('gdp', title='GDP in USD')
-            ).properties(title='GDP in USD Over Time')
+            alt.Y('gdp:Q', title='GDP in USD')
+        ).properties(title='GDP in USD Over Time')
         
         selector, rules, text, text_stroke = selection(who_df_filter, 'gdp')
         
@@ -134,12 +150,12 @@ def make_line_plots(country=['Afghanistan'], Yaxis_checked='original'):
             
         return alt.vconcat(life_chart_inter, gdp_chart_inter).configure(background='white')
     
-    else:
+    elif Yaxis_checked == "change_in_percent":
         ########life expectancy in %
         life_chart = line_chart.encode(
-        alt.Y('life_pct_change', title='Change in Percentage',
-              axis=alt.Axis(format='%'))
-    ).properties(title='Change in Life Expectancy Over Time')
+            alt.Y('life_pct_change:Q', title='Change in Percentage',
+                   axis=alt.Axis(format='%'))
+        ).properties(title='Change in Life Expectancy Over Time')
         
         selector, rules, text, text_stroke = selection(who_df_filter, 'life_pct_change')
         
@@ -147,7 +163,7 @@ def make_line_plots(country=['Afghanistan'], Yaxis_checked='original'):
         
         #######gdp in %
         gdp_chart = line_chart.encode(
-        alt.Y('gdp_pct_change', title='Change in Percentage',
+        alt.Y('gdp_pct_change:Q', title='Change in Percentage',
               axis=alt.Axis(format='%'))
         ).properties(title='Change in GDP Over Time')
         
@@ -158,10 +174,172 @@ def make_line_plots(country=['Afghanistan'], Yaxis_checked='original'):
         return alt.vconcat(life_chart_inter, gdp_chart_inter).configure(background='white')
 
 
+##############################################
+# Heat map
+##############################################
+def make_heat_map(df=data_df, colour="life_expectancy", year_range=None):
+    """Creates an Altair choropleth map
+    
+    Arguments:
+        df {pd.DataFrame} -- Data frame containing the shaded values to plot and country information
+        colour {str} -- The column to plot colour scale by (should be either: "life_expectancy", "gdp", or "gdp_log")
+        year_range {list} -- List of length 2 containing year range (for example: `[2012, 2015]`) (default: {None}) 
+        
+    
+    Returns:
+        altair.vegalite.v3.api.Chart -- Altair chart of world map with selected colour scale
+    """
+    
+    ##################################
+    # Clean and tidy data frame
+    ##################################
+    
+    # filter on year range
+    if year_range != None:
+        df = df[(df["year"] >= year_range[0]) & (df["year"] <= year_range[1])]
+
+    # aggregate and tidy data
+    df = (
+        df.loc[:, ["country", "status", "life_expectancy", "gdp"]].groupby(["country", "status"])
+          .agg("mean")
+          .reset_index()
+    )
+    df["gdp_log"] = np.log(df["gdp"])
+
+    # clean columns for lookup
+    df["country"] = df["country"].str.lower().str.strip()
+
+    # clean country names for lookup
+    df["country"] = df["country"].str.replace("czechia", "czech republic")
+    df["country"] = df["country"].str.replace("democratic people's republic of korea", "korea (democratic people's republic of)") # north korea
+    df["country"] = df["country"].str.replace("democratic republic of the congo", "congo (democratic republic of the)")
+    df["country"] = df["country"].str.replace("republic of korea", "korea (republic of)") # south korea
+    df["country"] = df["country"].str.replace("republic of moldova", "moldova (republic of)")
+    df["country"] = df["country"].str.replace("the former yugoslav republic of macedonia", "macedonia (the former yugoslav republic of)")
+    df["country"] = df["country"].str.replace("united republic of tanzania", "tanzania, united republic of")
+
+        # look up numeric code from world info
+    df = pd.merge(left=df,
+                       right=world_info_df[["name", "numericCode"]],
+                       left_on="country",
+                       right_on="name",
+                       how="left").drop("name", 1)
+
+    # numeric code must be string for lookup in altair
+    df["numericCode"] = df["numericCode"].astype(str)
+
+    # clean country names for prettier display
+    df["country"] = df["country"].str.title()
+    
+    
+    ##################################
+    # CREATE PLOT
+    ##################################
+    
+    if colour == "life_expectancy":
+        colour_title = "Life Expectancy"
+    elif colour == "gdp":
+        colour_title = "GDP (USD)"
+    elif colour == "gdp_log":
+        colour_title = "Log GDP (USD)"
+        
+    # country plotting data
+    countries = alt.topo_feature(data.world_110m.url, 'countries')
+
+    fig = alt.Chart(countries).mark_geoshape(
+        fill='#666666',
+        stroke='white'
+    ).encode(
+        alt.Color(colour + ":Q", title = colour_title),
+        tooltip=[
+            alt.Tooltip("country:N", title="Country"),
+            alt.Tooltip("life_expectancy:Q", title="Life Expectancy", format='.2f'),
+            alt.Tooltip("gdp:Q", title="GDP (USD)", format="$0,.2f"),
+            alt.Tooltip("gdp_log:Q", title="Log GDP (USD)", format="$0,.2f")
+        ]
+    ).transform_lookup(
+        lookup="id",
+        from_=alt.LookupData(df, "numericCode", ["life_expectancy", "country", "gdp", "gdp_log"])
+    ).configure_view(
+        strokeWidth=0,
+    ).project('naturalEarth1').properties(width=400, height=300)
+    
+    
+    return fig
+
+##############################################
+# Life vs. GDP
+##############################################
+def make_gdp_vs_life_scatter(df, x, colour, year_range=None):
+    """Creates an Altair scatter plot
+    
+    Arguments:
+        df {pd.DataFrame} -- Data frame containing the shaded values to plot and country information
+        x {str} -- The column to plot the x axis on (should be either: "gdp", or "gdp_log")
+        colour {str} -- The column to plot point colour by (should be either: "status", or "country")
+        year_range {list} -- List of length 2 containing year range (for example: `[2012, 2015]`) (default: {None}) 
+    
+    Returns:
+        altair.vegalite.v3.api.Chart
+    """
+    
+    ##################################
+    # Clean and tidy data frame
+    ##################################
+        
+    # filter on year range
+    if year_range != None:
+        df = df[(df["year"] >= year_range[0]) & (df["year"] <= year_range[1])]
+        
+    # aggregate and tidy data
+    df = (
+        df.loc[:, ["country", "status", "life_expectancy", "gdp"]].groupby(["country", "status"])
+          .agg("mean")
+          .reset_index()
+    )
+    df["gdp_log"] = np.log(df["gdp"])
+    
+    ##################################
+    # CREATE PLOT
+    ##################################
+
+    
+    # create plot
+    if x == "gdp":
+        x_title = "GDP (USD)"
+    else:
+        x_title = "GDP log (USD)"
+    if colour == "status":
+        colour_title = "Status"
+    else:
+        colour_title = "Country"
+        
+    fig = alt.Chart(df).mark_point(
+        opacity=1/2
+    ).encode(
+        alt.X(x + ":Q", title=x_title),
+        alt.Y("life_expectancy:Q", bin=alt.Bin(step=2), title="Life Expectancy"),
+        alt.Color(colour + ":N", title=colour_title),
+        tooltip=[
+                alt.Tooltip("country", title="Country"),
+                alt.Tooltip("status", title="Status"),
+                alt.Tooltip("gdp:Q", title="GDP (USD)", format="$0,.2f"),
+                alt.Tooltip("gdp_log:Q", title="GDP log (USD)", format="$0,.2f")
+            ]
+    ).properties(width=400, height=300)
+    
+    return fig
+
 ################################
-## Filter Options on the Left ##
+# Filter setup
+################################
 ##  - Create Control Buttons  ##
 ################################
+
+# Define variables to for filters
+dev_status = list(data_df["status"].unique())
+countries = list(data_df["country"].unique())
+years = list(data_df["year"].unique())
 
 country_status_options = [
     {"label":dev_stat , "value": dev_stat} for dev_stat in dev_status
@@ -175,18 +353,13 @@ year_options = [
     {"label": year, "value": year} for year in years
 ]
 
-
 countries_dict={"Developing":data_df[data_df.status=='Developing'].country.unique(),
                "Developed": data_df[data_df.status=='Developed'].country.unique()}
 
 
-# Title
-app.title = 'World Life Expectancy Dashboard App'
-
-
-############################################
-#########           Layout        ##########
-############################################
+##############################################
+# App layout
+##############################################
 
 app.layout = html.Div([
 
@@ -256,22 +429,26 @@ app.layout = html.Div([
                                 ),
 
                                 html.Div(
-                                    [html.H6(id="LE_Text"), html.P("Life Expectancy")],
+                                    [html.H6(str(data_df["life_expectancy"].mean().round(2))), 
+                                    html.P("Mean Life Expectancy")],
                                     id="lifeExp",
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6(id="GDP_Text"), html.P("GDP")],
+                                    [html.H6("$" + '{:,.2f}'.format(data_df["gdp"].mean().round(2))), 
+                                    html.P("Mean GDP (USD)")],
                                     id="GrossDP",
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6(id="TE_Text"), html.P("Total Expenditure")],
-                                    id="TotalExp",
+                                    [html.H6("$" + '{:,.2f}'.format(data_df["gdp"].std().round(2))), 
+                                    html.P("Standard Deviation GDP (USD)")],
+                                    id="GrossDPsd",
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6(id="NC_Text"), html.P("Number of Countries")],
+                                    [html.H6(str(len(data_df["country"].unique()))), 
+                                    html.P("Number of Countries")],
                                     id="NumCount",
                                     className="pretty_container two columns",
                                 ),
@@ -310,21 +487,23 @@ app.layout = html.Div([
                     html.P("Filter by Country Name:", className="control_label"),
                     dcc.Dropdown(
                         id="country_name_selector",
-                       # options=[{'label':country, 'value':country} for country in countries],
-                        value=[0],
+                       options=[{'label':country, 'value':country} for country in countries],
+                        value=["Mexico", "Turkey"],
                         multi=True,
                         className="dcc_control",
                     ),
-
+                    html.P("Select year range"),
+                    dcc.RangeSlider(id="year_slider", min=2000, max=2015, step=1, value=[2000, 2015], marks={i: str(i) for i in range(2000, 2016, 3)}),
+                    html.Br(),
                     #### Radio button - STARTS HERE####
                     html.P("Line plots Y-axis",className="control_label"),
                     dcc.RadioItems(
                         id="Yaxis_selector",
-                    options=[
-                        {'label': 'Original number', 'value': 'original'},
-                        {'label': 'By Percentage', 'value': 'N'}
-                    ],
-                    value='original'
+                        options=[
+                            {'label': 'Original number', 'value': 'original'},
+                            {'label': 'Change in Percentage', 'value': 'change_in_percent'}
+                        ],
+                        value='original'
                     )  
                 ],
                 id="cross-filter-options",
@@ -336,15 +515,14 @@ app.layout = html.Div([
             
             html.Div(
                 [
+                    # Line plots
                     html.Iframe(
                         sandbox='allow-scripts',
                         id='line-plot',
                         height='900',
                         width='900',
                         style={'border-width': '0'},
-
-                        
-                        srcDoc = make_line_plots().to_html()
+                        # srcDoc = make_line_plots().to_html()
                     )
                 ],
                 className="one-third column pretty_container"
@@ -360,23 +538,44 @@ app.layout = html.Div([
                             html.Iframe(
                                 id="heat_map",
                                 sandbox='allow-scripts',
-                                height='450',
-                                width='625',
+                                height='350',
+                                width='100%',
                                 style={'border-width': '0', 'background': 'white'}
                             ),
+                            html.P("Select colour fill:"),
                             dcc.RadioItems(id="heat_map_colour_selector", value="life_expectancy", options=[
                                 {'label': 'Life Expectancy', 'value': 'life_expectancy'},
                                 {'label': 'GPD (USD)', 'value': 'gdp'},
-                                {'label': 'GDP Log (USD)', 'value': 'gdp_log'},
-                        ])
+                                {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
+                            )
                         ]
                     ),
-
                     html.Br(),
-
                     html.Div(
                         [
-                            dcc.Graph()
+                            html.Iframe(
+                                id="gdp_vs_life_scatter",
+                                sandbox='allow-scripts',
+                                height='400',
+                                width='100%',
+                                style={'border-width': '0', 'background': 'white'}
+                            ),
+                            html.Div([
+                                html.Div([
+                                    html.P("Select point colour:"),
+                                    dcc.RadioItems(id="gdp_vs_life_scatter_colour", value="status", options=[
+                                        {'label': 'Status', 'value': 'status'},
+                                        {'label': 'Country', 'value': 'country'}]
+                                    )
+                                ], className="six columns"),
+                                html.Div([
+                                    html.P("Select x-axis:"),
+                                    dcc.RadioItems(id="gdp_vs_life_scatter_x", value="gdp", options=[
+                                        {'label': 'GPD (USD)', 'value': 'gdp'},
+                                        {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
+                                    )
+                                ], className="six columns")
+                            ], className="row"),
                         ]
                     )
                 ],
@@ -387,77 +586,9 @@ app.layout = html.Div([
     ################## END
 ])
 
-<<<<<<< HEAD
 ##############################################
 # Call backs
 ##############################################
-@app.callback(
-    Output(component_id='heat_map', component_property='srcDoc'),
-    [
-        Input(component_id='heat_map_colour_selector', component_property='value'),
-        Input(component_id='year_slider', component_property='value')
-    ]
-)
-def make_plot_heat_map(colour, year_range=None):
-    """Creates an Altair choropleth map
-    
-    Arguments:
-        df {pd.DataFrame} -- Data frame containing the shaded values to plot and country information
-        colour {str} -- The column to plot colour scale by (should be either: "life_expectancy", "gdp", or "gdp_log")
-        year_range {list} -- List of length 2 containing year range (for example: `[2012, 2015]`) (default: {None}) 
-        world_info_df {pd.DataFrame} -- A data frame containing information for each country (default: {world_info_df})
-        out {str} -- Either 'df' or 'chart' to determine what object function returns (default: {'chart'})
-    
-    Returns:
-        altair.vegalite.v3.api.Chart -- Altair chart of world map with selected colour scale
-            or
-        pd.DataFrame -- Data frame used to make chart (useful for trouble shooting missing data)
-    """
-
-    # to be turned into arguments eventually...
-    df=data_df
-    out="chart"
-    
-    ##################################
-    # Clean and tidy data frame
-    ##################################
-    
-    # filter on year range
-    if year_range != None:
-        df = df[(df["year"] >= year_range[0]) & (df["year"] <= year_range[1])]
-
-    # aggregate and tidy data
-    df = (
-        df.loc[:, ["country", "status", "life_expectancy", "gdp"]].groupby(["country", "status"])
-          .agg("mean")
-          .reset_index()
-    )
-    df["gdp_log"] = np.log(df["gdp"])
-
-    # clean columns for lookup
-    df["country"] = df["country"].str.lower().str.strip()
-
-    # clean country names for lookup
-    df["country"] = df["country"].str.replace("czechia", "czech republic")
-    df["country"] = df["country"].str.replace("democratic people's republic of korea", "korea (democratic people's republic of)") # north korea
-    df["country"] = df["country"].str.replace("democratic republic of the congo", "congo (democratic republic of the)")
-    df["country"] = df["country"].str.replace("republic of korea", "korea (republic of)") # south korea
-    df["country"] = df["country"].str.replace("republic of moldova", "moldova (republic of)")
-    df["country"] = df["country"].str.replace("the former yugoslav republic of macedonia", "macedonia (the former yugoslav republic of)")
-    df["country"] = df["country"].str.replace("united republic of tanzania", "tanzania, united republic of")
-=======
-#####################
-##    callback     ##
-#####################
-
-#Chained dropdown for dev/countries
-@app.callback(
-    Output('country_name_selector', 'options'),
-    [Input("country_dev_status_selector", 'value')]
-    )
-def filter_dev_country(selected_dev):
-    return [{'label':i, 'value': i} for i in countries_dict[selected_dev]]
-
 
 #Line plots inputs callback
 @app.callback(
@@ -466,64 +597,58 @@ def filter_dev_country(selected_dev):
      Input("Yaxis_selector", 'value')]
     )
 def update_line_plots(country, yaxis):
-    return make_line_plots(country, yaxis).to_html()
->>>>>>> upstream/master
+    return make_line_plots(country=country, Yaxis_checked=yaxis).to_html()
 
-
-    # look up numeric code from world info
-    df = pd.merge(left=df,
-                       right=world_info_df[["name", "numericCode"]],
-                       left_on="country",
-                       right_on="name",
-                       how="left").drop("name", 1)
-
-    # numeric code must be string for lookup in altair
-    df["numericCode"] = df["numericCode"].astype(str)
-
-    # clean country names for prettier display
-    df["country"] = df["country"].str.title()
+# HEATMAP
+@app.callback(
+    Output(component_id='heat_map', component_property='srcDoc'),
+    [
+        Input(component_id='heat_map_colour_selector', component_property='value'),
+        Input(component_id='year_slider', component_property='value')
+    ]
+)
+def update_heat_map(selected_colour, year_range):
+    """Update heat map in dash
     
+    Arguments:
+        selected_colour {str} -- Column name to use for map colouring
+        year_range {list} -- List of length 2 with start and end year (e.g. [2000, 2015])
     
-    ##################################
-    # CREATE PLOT
-    ##################################
-    
-    if colour == "life_expectancy":
-        colour_title = "Life Expectancy"
-    elif colour == "gdp":
-        colour_title = "GDP (USD)"
-    elif colour == "gdp_log":
-        colour_title = "Log GDP (USD)"
-        
-    # country plotting data
-    countries = alt.topo_feature(data.world_110m.url, 'countries')
+    Returns:
+        html -- Altair chart in html
+    """    
+    return make_heat_map(colour=selected_colour, year_range=year_range).to_html()
 
-    fig = alt.Chart(countries).mark_geoshape(
-        fill='#666666',
-        stroke='white'
-    ).encode(
-        alt.Color(colour + ":Q", title = colour_title),
-        tooltip=[
-            alt.Tooltip("country:N", title="Country"),
-            alt.Tooltip("life_expectancy:Q", title="Life Expectancy", format='.2f'),
-            alt.Tooltip("gdp:Q", title="GDP (USD)", format="$0,.2f"),
-            alt.Tooltip("gdp_log:Q", title="Log GDP (USD)", format="$0,.2f")
-        ]
-    ).transform_lookup(
-        lookup="id",
-        from_=alt.LookupData(df, "numericCode", ["life_expectancy", "country", "gdp", "gdp_log"])
-    ).configure_view(
-        strokeWidth=0,
-    ).project('naturalEarth1')
-    
-    if out == "chart":
-        return fig.to_html()
-    else:
-        return df
 
-###########
-# Run app #
-###########
+# Scatter plot
+@app.callback(
+    Output(component_id='gdp_vs_life_scatter', component_property='srcDoc'),
+    [
+        Input(component_id='gdp_vs_life_scatter_x', component_property='value'),
+        Input(component_id='gdp_vs_life_scatter_colour', component_property='value'),
+        Input(component_id='year_slider', component_property='value')
+    ]
+)
+def update_gdp_vs_life_scatter(selected_x, selected_colour, year_range): 
+    return make_gdp_vs_life_scatter(df=data_df, 
+                                    x=selected_x, 
+                                    colour=selected_colour, 
+                                    year_range=year_range).to_html()
+
+
+
+#Chained dropdown for dev/countries
+@app.callback(
+    Output('country_name_selector', 'options'),
+    [Input("country_dev_status_selector", 'value')]
+    )
+def filter_dev_country(selected_dev):    
+    return [{'label':i, 'value': i} for i in countries_dict[selected_dev]]
+
+
+##############################################
+# Run app
+##############################################
 
 if __name__ == '__main__':
     app.run_server(debug=True)

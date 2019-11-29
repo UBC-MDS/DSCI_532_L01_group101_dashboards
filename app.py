@@ -585,7 +585,7 @@ app.layout = html.Div([
                     html.P("Select fill colour for heat map:"),
                     dcc.RadioItems(id="heat_map_colour_selector", value="life_expectancy", options=[
                         {'label': 'Life Expectancy', 'value': 'life_expectancy'},
-                        {'label': 'GPD (USD)', 'value': 'gdp'},
+                        {'label': 'GDP (USD)', 'value': 'gdp'},
                         {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
                     ),
                         
@@ -609,7 +609,7 @@ app.layout = html.Div([
                                 html.Div([
                                     html.P("Select x-axis:"),
                                     dcc.RadioItems(id="gdp_vs_life_scatter_x", value="gdp", options=[
-                                        {'label': 'GPD (USD)', 'value': 'gdp'},
+                                        {'label': 'GDP (USD)', 'value': 'gdp'},
                                         {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
                                     )
                                 ], className="six columns")

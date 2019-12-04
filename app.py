@@ -510,40 +510,6 @@ app.layout = html.Div([
     ########## DASHBOARD
     html.Div(
         [ 
-            ############# FILTER part on the Side
-            html.Div(
-                [
-                    #### Country Selection Dropdown - STARTS HERE####
-                    html.P("Filter by Country Name:", className="control_label"),
-                    dcc.Dropdown(
-                        id="country_name_selector",
-                       options=[{'label':country, 'value':country} for country in countries],
-                        value=["Mexico", "Turkey"],
-                        multi=True,
-                        className="dcc_control",
-                    ),
-                    #### Status Radio Button - STARTS HERE####
-                    html.P("Filter drop down menu by Country Status:", className="control_label"),
-                    dcc.RadioItems(
-                        id="country_dev_status_selector",
-                        options=[
-                            {"label": "Developed", "value": "Developed"},
-                            {"label": "Developing", "value": "Developing"}
-                        ],
-                        value="Developed",
-                        style={"display": "inline-block"},
-                        className="dcc_control"
-                    ),
-
-                    html.Br(),
-                    html.Br(),
-
-                ],
-                id="cross-filter-options",
-                className="column pretty_container",
-                style={"width":"25%","display":"inline","border-width":"0", "vertical-align":"top"},
-            ),
-
             ################line plots####################
             
             html.Div(
@@ -565,10 +531,41 @@ app.layout = html.Div([
                             {'label': 'Change in Percentage', 'value': 'change_in_percent'}
                         ],
                         value='original'
-                    )
+                    ),
+                                ############# FILTER part on the Side
+                    html.Div(
+                        [
+                            #### Country Selection Dropdown - STARTS HERE####
+                            html.P("Filter by Country Name:", className="control_label"),
+                            dcc.Dropdown(
+                                id="country_name_selector",
+                               options=[{'label':country, 'value':country} for country in countries],
+                                value=["Mexico", "Turkey"],
+                                multi=True,
+                                className="dcc_control",
+                            ),
+                            #### Status Radio Button - STARTS HERE####
+                            html.P("Filter drop down menu by Country Status:", className="control_label"),
+                            dcc.RadioItems(
+                                id="country_dev_status_selector",
+                                options=[
+                                    {"label": "Developed", "value": "Developed"},
+                                    {"label": "Developing", "value": "Developing"}
+                                ],
+                                value="Developed",
+                                style={"display": "inline-block"},
+                                className="dcc_control"
+                            ),
+
+                            html.Br(),
+                            html.Br(),
+
+                        ],
+                        id="cross-filter-options"
+                    ),
                 ],
-                className="column2 pretty_container",
-                style={"width":"33%", "display":"inline-block","border":"0", "vertical-align":"top"},
+                className="column1 pretty_container",
+                style={"width":"45%", "display":"inline-block","border":"0", "vertical-align":"top"},
             ),
             
             html.Div(
@@ -619,14 +616,14 @@ app.layout = html.Div([
                             #### Year Range Slider - STARTS HERE####
                             html.P("Select year range:"),
                             dcc.RangeSlider(id="year_slider", min=2000, max=2015, step=1, value=[2000, 2015], 
-                                            marks={i: str(i) for i in range(2000, 2016, 3)}),
+                                            marks={i: str(i) for i in range(2000, 2016)}),
                     
                         ]),
                         html.Br(),
                         html.Br()      
                 ],
-                className="column3 pretty_container",
-                style={"width":"33%","display":"inline-block", "border-width":"0","vertical-align":"top"}
+                className="column2 pretty_container",
+                style={"width":"45%","display":"inline-block", "border-width":"0","vertical-align":"top"}
             ),
         ],
         className="row2 twelve columns"

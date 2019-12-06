@@ -18,13 +18,17 @@ Team members (lab 1, group 101):
 
 ## Milestone 2:
 
-- [Heroku deployment](https://dsci-532-group101-milestone2.herokuapp.com/)
-- [Reflection](docs/reflection.md)
+- [Heroku deployment Python (Milestone 2 Branch)](https://dsci-532-group101-milestone2.herokuapp.com/)
+- [Reflection (Milestone 2 Branch)](https://github.com/UBC-MDS/DSCI_532_L01_group101_dashboards/blob/61551de9c90d324b5cfa0ac4ccd4f2d755e1590d/docs/reflection.md)
 - [App functionality](#app-functionality)
 
 ## Milestone 3:
 
-*Under development*
+- [R dashboard repo](https://github.com/UBC-MDS/DSCI_532_L01_group101_project2)
+- [Reflection - Current](docs/reflection.md)
+- [Heroku deployment Python (most current)](https://mds-dashboard-team-101.herokuapp.com/)
+- [Summary of feedback and maintenance (issue #44)](https://github.com/UBC-MDS/DSCI_532_L01_group101_dashboards/issues/44)
+- [Updates to Python dashboard README (PR #46)](https://github.com/UBC-MDS/DSCI_532_L01_group101_dashboards/pull/46/files)
 
 ## Milestone 4:
 

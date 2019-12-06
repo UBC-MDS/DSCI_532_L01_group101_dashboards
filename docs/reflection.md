@@ -1,4 +1,4 @@
-# Milestone 2 Reflection
+# Milestone 2 and 3 Reflection
 
 ### Background
 
@@ -31,16 +31,32 @@ To improve the dashboard we sought feedback from peers and teaching assistants. 
   - There is no GDP data for the USA.
   - `percentage expenditure` has some values which are greater than 100 (it is mean to represent the percent of GDP spent on health).
 
-### Ideas for future improvement
+### Feedback and Ideas for future improvement
 
- Add in additional geographic details:
+Based on self reflection, discussions with our peers, and feedback from TAs we have identified several areas of improvement. Due to limited time constraints not all of these items have been implemented. Below is a summary of feedback and an explanation of what has beeen implemented to date.
+
+**Layout**
+
+| Feedback                                                     | Status |
+| ------------------------------------------------------------ | ------ |
+| The plots can be cut-off and not look correct on certain size screens (#41) |        |
+|                                                              |        |
+|                                                              |        |
+
+**Summary Statistics**
+
+**Line plot**
+
+- Add in a control to limit the number of countries that can be drawn on line plot.
+
+**Map**
 
 - Map each country to a region or continent.
 - This could enable for comparisons by region/continent as opposed to just country by country.
 - It would also allow users to compare a countries performance relative to the continental/regional mean.
 
-Other items:
+**Other**
 
-- Add in a control to limit the number of countries that can be drawn on line plot.
+- 
 - Obtain correct or more accurate GDP and life expectancy data.
 - Add in the ability to quickly create interesting views. For example, develop a button that can quick filter to top 10 worst or best performing countries.

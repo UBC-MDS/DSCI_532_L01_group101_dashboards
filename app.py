@@ -427,12 +427,12 @@ app.layout = html.Div([
                     [
                         html.Div(
                             [
-                                html.H3(
+                                html.H1(
                                     "Global Life Expectancy Trends",
-                                    style={"margin-bottom": "0px"},
+                                    style={"margin-bottom": "0px", "text-align":"center"},
                                 ),
                                 html.H5(
-                                    "Overview of Inequality of Life Expectancy", style={"margin-top": "0px"}
+                                    "Overview of Inequality of Life Expectancy", style={"margin-top": "0px", "text-align":"center"}
                                 ),
                             ]
                         )
@@ -464,35 +464,44 @@ app.layout = html.Div([
                     [
                         html.Div(
                             [   html.Div(
-                                    [html.H6("Description"), 
+                                    [html.H6("Description"),
                                     html.P("""This dashboard app is created to help decision-makers decide where and what to invest in 
                                                to improve the life expectancy for all. 
-                                               Our app will visualize several factors across 193 countries to better understand the global macro trends.""")],
+                                               Our app will visualize several factors across 193 countries to better understand the global macro trends.""",
+                                               style={"font-size":"13pt"})],
                                     className="pretty_container four columns",
                                 ),
 
                                 html.Div(
-                                    [html.H6(str(round(data_df["life_expectancy"].mean(), 2))), 
-                                    html.P("Mean Life Expectancy")],
+                                    [html.P(["Mean Life Expectancy",html.Br(),"of the World"], style={"font-size":"14pt"}),
+                                    html.Br(),
+                                    html.H6(str(round(data_df["life_expectancy"].mean(), 2)))],
                                     id="lifeExp",
+                                    style={"text-align":"center"},
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6("$" + '{:,.2f}'.format(round(data_df["gdp"].mean(),2))), 
-                                    html.P("Mean GDP (USD)")],
+                                    [html.P(["World Mean GDP",html.Br(),"in US Dollars"], style={"font-size":"14pt"}),
+                                    html.Br(),
+                                    html.H6("$" + '{:,.2f}'.format(round(data_df["gdp"].mean(),2)))], 
                                     id="GrossDP",
+                                    style={"text-align":"center"},
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6("$" + '{:,.2f}'.format(round(data_df["gdp"].std(),2))), 
-                                    html.P("Standard Deviation GDP (USD)")],
+                                    [html.P(["World Standard Dev. GDP",html.Br(),"in US Dollars"], style={"font-size":"14pt"}),
+                                    html.Br(),
+                                    html.H6("$" + '{:,.2f}'.format(round(data_df["gdp"].std(),2)))], 
                                     id="GrossDPsd",
+                                    style={"text-align":"center"},
                                     className="pretty_container two columns",
                                 ),
                                 html.Div(
-                                    [html.H6(str(len(data_df["country"].unique()))), 
-                                    html.P("Number of Countries")],
+                                    [html.P(["Number of Countries",html.Br(),"in the World"], style={"font-size":"14pt"}),
+                                    html.Br(),
+                                    html.H6(str(len(data_df["country"].unique())))], 
                                     id="NumCount",
+                                    style={"text-align":"center"},
                                     className="pretty_container two columns",
                                 ),
                             ],
@@ -514,37 +523,9 @@ app.layout = html.Div([
             
             html.Div(
                 [
-                    # Line plots
-                    html.Iframe(
-                        sandbox='allow-scripts',
-                        id='line-plot',
-                        height='800',
-                        width='100%',
-                        style={'border-width': '0'},
-                    ),
-                    #### Yaxis Change Radio button - STARTS HERE####
-                    html.P("Select line plot y-axis:",className="control_label"),
-                    dcc.RadioItems(
-                        id="Yaxis_selector",
-                        options=[
-                            {'label': 'Original number', 'value': 'original'},
-                            {'label': 'Change in Percentage', 'value': 'change_in_percent'}
-                        ],
-                        value='original'
-                    ),
-                                ############# FILTER part on the Side
+                    ############# FILTER part on the Side
                     html.Div(
-                        [
-                            #### Country Selection Dropdown - STARTS HERE####
-                            html.P("Filter by Country Name:", className="control_label"),
-                            dcc.Dropdown(
-                                id="country_name_selector",
-                               options=[{'label':country, 'value':country} for country in countries],
-                                value=["Mexico", "Turkey"],
-                                multi=True,
-                                className="dcc_control",
-                            ),
-                            #### Status Radio Button - STARTS HERE####
+                        [   #### Status Radio Button - STARTS HERE####
                             html.P("Filter drop down menu by Country Status:", className="control_label"),
                             dcc.RadioItems(
                                 id="country_dev_status_selector",
@@ -558,43 +539,69 @@ app.layout = html.Div([
                             ),
 
                             html.Br(),
+                            #### Country Selection Dropdown - STARTS HERE####
+                            html.P("Filter by Country Name:", className="control_label"),
+                            dcc.Dropdown(
+                                id="country_name_selector",
+                               options=[{'label':country, 'value':country} for country in countries],
+                                value=["Italy", "Spain", "Germany"],
+                                multi=True,
+                                className="dcc_control",
+                            ),
+
                             html.Br(),
+
+                            #### Yaxis Change Radio button - STARTS HERE####
+                            html.P("Select line plot y-axis:",className="control_label"),
+                            dcc.RadioItems(
+                                id="Yaxis_selector",
+                                options=[
+                                    {'label': 'Original number', 'value': 'original'},
+                                    {'label': 'Change in Percentage', 'value': 'change_in_percent'}
+                                ],
+                                value='original'
+                            ),
+                            html.Br(),
+                            html.Br(),
+
+                            # Line plots
+                            html.Iframe(
+                                sandbox='allow-scripts',
+                                id='line-plot',
+                                height='800',
+                                width='100%',
+                                style={'border-width': '0'},
+                            ),                   
 
                         ],
                         id="cross-filter-options"
                     ),
                 ],
-                className="column1 pretty_container",
+                className="col-sm pretty_container",
                 style={"width":"45%", "display":"inline-block","border":"0", "vertical-align":"top"},
             ),
             
             html.Div(
                 [
                     # HEAT MAP
-                    
-                    html.Iframe(
-                        id="heat_map",
-                        sandbox='allow-scripts',
-                        height='350',
-                        width='100%',
-                        style={'border-width': '0', 'background': 'white'}
-                    ),
                     html.P("Select fill colour for heat map:"),
                     dcc.RadioItems(id="heat_map_colour_selector", value="life_expectancy", options=[
                         {'label': 'Life Expectancy', 'value': 'life_expectancy'},
                         {'label': 'GDP (USD)', 'value': 'gdp'},
                         {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
                     ),
-                        
                     html.Br(),
-
                     html.Iframe(
-                        id="gdp_vs_life_scatter",
+                        id="heat_map",
                         sandbox='allow-scripts',
-                        height='400',
+                        height='350',
                         width='100%',
-                        style={'border-width': '0', 'background': 'white'}
+                        style={'border-width': '0', 'background': 'white', "align":"center"}
                     ),
+                    html.Br(),
+                    html.Br(),
+                    html.Hr(style={"color":"#D3D3D3"}),
+                    html.Br(),
                     html.Div([
                                 html.Div([
                                     html.P("Select point colour:"),
@@ -610,19 +617,27 @@ app.layout = html.Div([
                                         {'label': 'GDP Log (USD)', 'value': 'gdp_log'}]
                                     )
                                 ], className="six columns")
-                            ], className="row"),
+                            ], className="row" ),
                         html.Br(),
                         html.Div([
                             #### Year Range Slider - STARTS HERE####
                             html.P("Select year range:"),
                             dcc.RangeSlider(id="year_slider", min=2000, max=2015, step=1, value=[2000, 2015], 
-                                            marks={i: str(i) for i in range(2000, 2016)}),
+                                            marks={i: str(i) for i in range(2000, 2016)}, updatemode="drag"),
                     
                         ]),
-                        html.Br(),
-                        html.Br()      
+                    html.Br(),
+                    html.Br(),
+                    html.Br(),
+                    html.Iframe(
+                        id="gdp_vs_life_scatter",
+                        sandbox='allow-scripts',
+                        height='400',
+                        width='100%',
+                        style={'border-width': '0', 'background': 'white', "align":"center"}
+                    ),    
                 ],
-                className="column2 pretty_container",
+                className="col-sm pretty_container",
                 style={"width":"45%","display":"inline-block", "border-width":"0","vertical-align":"top"}
             ),
         ],
